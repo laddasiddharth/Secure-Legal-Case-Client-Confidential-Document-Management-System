@@ -1,223 +1,331 @@
-# 🔐 Secure Legal Case & Client Confidential Document Management System
+# 🔒 Secure Legal Document Management System
 
-A production-grade, end-to-end secure system for managing legal cases and confidential documents with military-grade encryption and institutional integrity.
+A production-grade legal document management system with military-grade encryption, designed for law firms and courts to handle extremely sensitive legal data with the highest security standards.
 
-## 🎯 Project Overview
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Node](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen.svg)
+![React](https://img.shields.io/badge/react-18.3.1-blue.svg)
 
-This system is designed for law firms and courts to handle extremely sensitive legal data with the highest security standards. It implements comprehensive security measures including multi-factor authentication, role-based access control, hybrid encryption, and digital signatures.
+## ✨ Features
+
+### 🔐 **5-Part Security Architecture**
+
+1. **Multi-Factor Authentication (MFA)**
+   - Password + Email OTP for enhanced security
+   - bcrypt hashing with unique salt per user
+   - Account lockout after failed attempts
+
+2. **Role-Based Access Control (RBAC)**
+   - Three distinct roles: Lawyer, Client, Admin
+   - Access Control Matrix (ACL) for fine-grained permissions
+   - Resource-level authorization
+
+3. **Hybrid Encryption**
+   - RSA-2048 for secure key exchange
+   - AES-256-GCM for document encryption
+   - Encryption at rest in MongoDB
+
+4. **Digital Signatures & Hashing**
+   - SHA-256 document hashing for integrity
+   - RSA-PSS digital signatures
+   - Non-repudiation guarantee
+
+5. **Encoding & Verification**
+   - QR code generation for case verification
+   - Base64 encoding for secure data transfer
+   - Quick access to case details
+
+### 🎨 **Noir Legal Design**
+
+A distinctive dark theme with:
+
+- **Typography**: Crimson Text (serif) + JetBrains Mono (monospace)
+- **Colors**: Dark charcoal backgrounds with copper/amber accents
+- **Effects**: Atmospheric gradients, staggered animations, glow effects
+- **UX**: Smooth 60fps performance, responsive design
 
 ## 🚀 Quick Start
 
-### 1. Installation
+### Prerequisites
 
-```bash
-npm install
-```
+- **Node.js** (v16 or higher)
+- **MongoDB** (local installation or MongoDB Atlas account)
+- **npm** or **yarn**
 
-### 2. Environment Setup
+### Installation
 
-Create a `.env` file in the root directory (copy from `.env.example`):
+1. **Clone the repository**
 
-```env
-MONGODB_URI=your_mongodb_uri
-JWT_SECRET=your_secret_key
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
-```
+   ```bash
+   git clone https://github.com/yourusername/legal-document-management.git
+   cd legal-document-management
+   ```
 
-### 3. Run Application
+2. **Install dependencies**
 
-```bash
-npm run dev:all
-```
+   ```bash
+   npm install
+   ```
 
-- **Frontend:** http://localhost:8080
-- **Backend API:** http://localhost:5000
-- **Security Demo:** http://localhost:8080/security-demo
+3. **Configure environment variables**
 
-## 🛡️ Security Architecture
+   ```bash
+   cp .env.example .env
+   ```
 
-This project implements a comprehensive 5-part security suite:
+   Edit `.env` and add your configuration:
 
-### Part 1: Authentication (3 marks)
+   ```env
+   MONGODB_URI=mongodb://localhost:27017/legal-docs
+   JWT_SECRET=your-super-secret-jwt-key-change-this
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=your-email@gmail.com
+   SMTP_PASS=your-app-password
+   PORT=5000
+   FRONTEND_URL=http://localhost:8080
+   ```
 
-- **Single-Factor Authentication (SFA):** Username + Password with bcrypt hashing and salt
-- **Multi-Factor Authentication (MFA):** Password + Email OTP (6-digit, 5-minute expiry)
-- Compliant with NIST SP 800-63-2 architecture
+4. **Run the application**
 
-### Part 2: Authorization - Access Control (3 marks)
+   ```bash
+   # Run both frontend and backend
+   npm run dev:all
 
-- **Role-Based Access Control (RBAC)** with 3 roles:
-  - **Lawyer:** Create cases, upload evidence, sign documents
-  - **Client:** View assigned cases, read documents
-  - **Court Admin:** Full system access, user management, audit logs
+   # Or run separately
+   npm run dev:frontend  # Frontend only (port 8080)
+   npm run dev:backend   # Backend only (port 5000)
+   ```
 
-**Access Control Matrix:**
-| Subject | Case File | Evidence | Judgment |
-|---------|-----------|----------|----------|
-| Lawyer | Read/Write | Read/Upload | Read/Sign |
-| Client | Read | Read | Read |
-| Admin | Full | Full | Full |
+5. **Access the application**
+   - Frontend: http://localhost:8080
+   - Backend API: http://localhost:5000
+   - Security Demo: http://localhost:8080/security-demo
 
-### Part 3: Encryption (3 marks)
-
-- **Hybrid Encryption System:**
-  - **RSA-2048** for key exchange
-  - **AES-256-GCM** for document encryption
-- All documents encrypted at rest in MongoDB
-- Secure key management with user-specific encryption
-
-### Part 4: Hashing & Digital Signature (3 marks)
-
-- **Password Hashing:** bcrypt with unique salt per user
-- **Document Hashing:** SHA-256 for integrity verification
-- **Digital Signatures:** RSA-PSS for document signing by lawyers
-- Signature verification for non-repudiation
-
-### Part 5: Encoding Techniques (1 mark)
-
-- **QR Code Generation:** For case reference IDs and secure document verification
-- **Base64 Encoding:** For encrypted document transfer
-
-## 📂 Project Structure
+## 📁 Project Structure
 
 ```
-legal-document-management-system/
-├── src/                          # React + TypeScript frontend
-│   ├── components/               # Reusable UI components
-│   ├── pages/                    # Page components
-│   ├── services/                 # API and crypto services
-│   ├── utils/                    # Utility functions
-│   ├── App.tsx                   # Main app component
-│   └── main.tsx                  # Entry point
-├── server/                       # Express + MongoDB backend
-│   ├── models/                   # Mongoose schemas
-│   ├── routes/                   # API routes
-│   ├── middleware/               # Auth & RBAC middleware
-│   ├── controllers/              # Business logic
-│   ├── utils/                    # Crypto & email utilities
-│   └── index.js                  # Server entry point
-├── Documentation.md              # Comprehensive security documentation
-├── package.json                  # Dependencies
-└── .env                          # Environment variables
+legal-document-management/
+├── server/                      # Backend (Express + MongoDB)
+│   ├── models/                  # Mongoose schemas
+│   │   ├── User.js             # User authentication & roles
+│   │   ├── Case.js             # Legal case management
+│   │   ├── Document.js         # Encrypted documents
+│   │   └── AuditLog.js         # Security audit trail
+│   ├── routes/                  # API endpoints
+│   │   ├── auth.js             # Authentication routes
+│   │   ├── cases.js            # Case management
+│   │   ├── documents.js        # Document handling
+│   │   └── admin.js            # Admin operations
+│   └── index.js                # Server entry point
+├── src/                         # Frontend (React + TypeScript)
+│   ├── pages/                   # Page components
+│   │   ├── LandingPage.tsx     # Home page
+│   │   ├── LoginPage.tsx       # Login with MFA
+│   │   ├── RegisterPage.tsx    # User registration
+│   │   ├── DashboardPage.tsx   # User dashboard
+│   │   └── SecurityDemoPage.tsx # Security showcase
+│   ├── App.tsx                 # Main app with routing
+│   ├── main.tsx                # React entry point
+│   └── index.css               # Global Noir Legal theme
+├── .env.example                 # Environment template
+├── .gitignore                   # Git ignore rules
+├── package.json                 # Dependencies
+├── vite.config.ts              # Vite configuration
+└── README.md                    # This file
 ```
 
-## 🔒 Security Features
+## 🛡️ Security Features
 
 ### Attack Prevention
 
-- **Replay Attacks:** JWT expiry and OTP time limits
-- **Unauthorized Access:** RBAC enforcement at API and UI levels
-- **Document Tampering:** Digital signature verification
-- **Man-in-the-Middle:** HTTPS + end-to-end encryption
-- **Insider Threats:** Comprehensive audit logging
+| Attack Type             | Countermeasure                  |
+| ----------------------- | ------------------------------- |
+| **Replay Attack**       | JWT expiry + OTP time limits    |
+| **Unauthorized Access** | RBAC enforcement + ACL matrix   |
+| **Document Tampering**  | Digital signatures (RSA-PSS)    |
+| **Man-in-the-Middle**   | HTTPS + End-to-end encryption   |
+| **Insider Threats**     | Comprehensive audit logging     |
+| **Brute Force**         | Account lockout mechanism       |
+| **XSS/Injection**       | Input validation + sanitization |
 
-### Audit Trail
+### Compliance
 
-- All critical actions logged (login, document access, modifications)
-- Admin dashboard for log viewing
-- Tamper-proof log storage
+- **NIST SP 800-63-2** compliant authentication
+- **GDPR** ready with audit trails
+- **HIPAA** compatible encryption standards
 
-## 👥 User Roles
+## 🎯 User Roles
 
-### 1. Lawyer
+### 👨‍⚖️ Lawyer
 
+- Full read/write access to case files
+- Upload and manage evidence
+- Sign legal documents
 - Create and manage cases
-- Upload evidence and legal documents
-- Sign documents digitally
-- View assigned cases
 
-### 2. Client
+### 👤 Client
 
-- View assigned cases
-- Read case documents
-- Download signed judgments
-- Verify document signatures
+- Read-only access to their cases
+- View evidence and documents
+- Track case progress
+- Receive notifications
 
-### 3. Court Admin
+### 🔧 Admin
 
 - Full system access
 - User management
-- View audit logs
+- Audit log review
 - System configuration
 
-## 🛠️ Technology Stack
+## 🔧 Technology Stack
 
-| Component      | Technology                             |
-| -------------- | -------------------------------------- |
-| Frontend       | React + TypeScript + Vite              |
-| Backend        | Node.js + Express                      |
-| Database       | MongoDB + Mongoose                     |
-| Authentication | JWT + bcrypt                           |
-| Encryption     | Web Crypto API (AES-256-GCM, RSA-2048) |
-| Hashing        | SHA-256                                |
-| Email          | Nodemailer                             |
-| QR Code        | qrcode library                         |
+### Frontend
 
-## 📚 API Endpoints
+- **React 18** - UI framework
+- **TypeScript** - Type safety
+- **Vite** - Build tool & dev server
+- **React Router** - Client-side routing
+
+### Backend
+
+- **Node.js** - Runtime environment
+- **Express** - Web framework
+- **MongoDB** - Database
+- **Mongoose** - ODM
+
+### Security
+
+- **bcryptjs** - Password hashing
+- **jsonwebtoken** - JWT authentication
+- **crypto** (Web Crypto API) - Encryption
+- **nodemailer** - Email OTP delivery
+- **qrcode** - QR code generation
+
+## 📊 API Endpoints
 
 ### Authentication
 
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login (SFA)
-- `POST /api/auth/verify-otp` - OTP verification (MFA)
-- `POST /api/auth/logout` - User logout
+```
+POST   /api/auth/register      # Register new user
+POST   /api/auth/login         # Login + send OTP
+POST   /api/auth/verify-otp    # Verify OTP + get JWT
+POST   /api/auth/logout        # Logout user
+```
 
 ### Cases
 
-- `GET /api/cases` - Get all cases (role-based)
-- `POST /api/cases` - Create new case (Lawyer only)
-- `GET /api/cases/:id` - Get case details
-- `PUT /api/cases/:id` - Update case
+```
+GET    /api/cases              # Get all cases (filtered by role)
+POST   /api/cases              # Create new case
+GET    /api/cases/:id          # Get case details
+PUT    /api/cases/:id          # Update case
+```
 
 ### Documents
 
-- `POST /api/documents/upload` - Upload encrypted document
-- `GET /api/documents/:id` - Download encrypted document
-- `POST /api/documents/sign` - Sign document (Lawyer only)
-- `POST /api/documents/verify` - Verify signature
+```
+POST   /api/documents/upload   # Upload encrypted document
+GET    /api/documents/:id      # Download document
+POST   /api/documents/sign     # Sign document
+POST   /api/documents/verify   # Verify signature
+```
 
 ### Admin
 
-- `GET /api/admin/users` - Get all users
-- `GET /api/admin/audit-logs` - Get audit logs
-- `PUT /api/admin/users/:id` - Update user role
+```
+GET    /api/admin/users        # Get all users
+GET    /api/admin/audit-logs   # Get audit logs
+PUT    /api/admin/users/:id    # Update user
+```
 
-## 🎓 Evaluation Criteria Mapping
+## 🎨 Design System
 
-| Criteria             | Marks  | Implementation                     |
-| -------------------- | ------ | ---------------------------------- |
-| Authentication       | 3      | SFA + MFA with OTP                 |
-| Authorization        | 3      | RBAC with ACL matrix               |
-| Encryption           | 3      | RSA + AES hybrid                   |
-| Hashing & Signatures | 3      | SHA-256 + RSA-PSS                  |
-| Encoding             | 1      | QR codes + Base64                  |
-| Theory               | 2      | Attack scenarios + countermeasures |
-| **Total**            | **15** | ✅ All criteria covered            |
+### Color Palette
 
-## 🚦 Development Status
+```css
+/* Noir Legal Theme */
+--primary-color: #1a1a1a /* Deep charcoal */ --secondary-color: #d4a574
+  /* Copper/amber */ --accent-color: #ff6b35 /* Vibrant orange */
+  --bg-primary: #0f0f0f /* Almost black */ --text-primary: #e8e8e8
+  /* Light gray */;
+```
+
+### Typography
+
+- **Headings**: Crimson Text (serif) - Legal authority
+- **Labels/Code**: JetBrains Mono (monospace) - Technical precision
+- **Body**: Crimson Text - Readability
+
+## 🚧 Development Roadmap
 
 - [x] Phase 1: Project Setup & Foundation
 - [ ] Phase 2: Authentication System (SFA + MFA)
-- [ ] Phase 3: Authorization & Access Control (RBAC)
-- [ ] Phase 4: Encryption System (RSA + AES)
-- [ ] Phase 5: Hashing & Digital Signatures
-- [ ] Phase 6: Encoding & Additional Features
-- [ ] Phase 7: Security Demo & Theory Integration
+- [ ] Phase 3: Authorization (RBAC + ACL)
+- [ ] Phase 4: Encryption (RSA + AES)
+- [ ] Phase 5: Digital Signatures & Hashing
+- [ ] Phase 6: QR Code & Encoding
+- [ ] Phase 7: Security Demo & Testing
 
-## 📖 Documentation
+## 🧪 Testing
 
-For detailed security implementation, policies, and justifications, refer to:
-👉 [Documentation.md](./Documentation.md)
+```bash
+# Run tests (to be implemented)
+npm test
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+```
+
+## 📝 Environment Variables
+
+| Variable       | Description                | Example                                |
+| -------------- | -------------------------- | -------------------------------------- |
+| `MONGODB_URI`  | MongoDB connection string  | `mongodb://localhost:27017/legal-docs` |
+| `JWT_SECRET`   | Secret key for JWT signing | `your-secret-key`                      |
+| `SMTP_HOST`    | SMTP server hostname       | `smtp.gmail.com`                       |
+| `SMTP_PORT`    | SMTP server port           | `587`                                  |
+| `SMTP_USER`    | SMTP username              | `your-email@gmail.com`                 |
+| `SMTP_PASS`    | SMTP password/app password | `your-app-password`                    |
+| `PORT`         | Backend server port        | `5000`                                 |
+| `FRONTEND_URL` | Frontend URL for CORS      | `http://localhost:8080`                |
 
 ## 🤝 Contributing
 
-This is an academic project for cybersecurity evaluation. Contributions are welcome for educational purposes.
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-MIT License - See LICENSE file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👤 Author
+
+**Your Name**
+
+- GitHub: [@yourusername](https://github.com/yourusername)
+- Email: your.email@example.com
+
+## 🙏 Acknowledgments
+
+- Inspired by real-world legal document management needs
+- Security architecture based on NIST guidelines
+- Design influenced by modern dark themes and legal aesthetics
+
+## 📞 Support
+
+For support, email your.email@example.com or open an issue on GitHub.
 
 ---
 
-**Built with 🔒 by [Your Name] for FOCYS Lab Evaluation**
+**Built with 🔒 for secure legal operations**
+
+_"Where confidentiality meets technology"_
