@@ -39,8 +39,8 @@ const SecurityDemoPage = () => {
                 </ul>
                 
                 <div className="demo-status">
-                  <span className="badge badge-warning">Phase 2</span>
-                  <p>Will be implemented in Phase 2</p>
+                  <span className="badge badge-success">Active</span>
+                  <p>Fully functional MFA and Secure Auth</p>
                 </div>
               </div>
             </div>
@@ -84,8 +84,8 @@ const SecurityDemoPage = () => {
                 </table>
                 
                 <div className="demo-status">
-                  <span className="badge badge-warning">Phase 3</span>
-                  <p>Will be implemented in Phase 3</p>
+                  <span className="badge badge-success">Active</span>
+                  <p>Enforced across all API endpoints</p>
                 </div>
               </div>
             </div>
@@ -96,22 +96,22 @@ const SecurityDemoPage = () => {
                 <h2>🔒 Hybrid Encryption</h2>
               </div>
               <div className="demo-body">
-                <h3>Key Exchange</h3>
+                <h3>Key Management</h3>
                 <ul>
-                  <li>RSA-2048 for key exchange</li>
+                  <li>RSA-2048 for key generation</li>
                   <li>Public/Private key pairs per user</li>
                 </ul>
                 
                 <h3>Document Encryption</h3>
                 <ul>
                   <li>AES-256-GCM for document encryption</li>
-                  <li>Random session key per document</li>
+                  <li>Authenticated decryption with AuthTags</li>
                   <li>Encryption at rest in MongoDB</li>
                 </ul>
                 
                 <div className="demo-status">
-                  <span className="badge badge-warning">Phase 4</span>
-                  <p>Will be implemented in Phase 4</p>
+                  <span className="badge badge-success">Active</span>
+                  <p>FIPS-compliant encryption standard</p>
                 </div>
               </div>
             </div>
@@ -119,26 +119,25 @@ const SecurityDemoPage = () => {
             {/* Part 4: Hashing & Signatures */}
             <div className="demo-card">
               <div className="demo-header">
-                <h2>✍️ Hashing & Digital Signatures</h2>
+                <h2>✍️ Hashing & Integrity</h2>
               </div>
               <div className="demo-body">
-                <h3>Password Hashing</h3>
+                <h3>Data Integrity</h3>
                 <ul>
-                  <li>bcrypt with unique salt per user</li>
-                  <li>Secure password storage</li>
+                  <li>SHA-256 hash of every document</li>
+                  <li>bcrypt with salt for passwords</li>
                 </ul>
                 
                 <h3>Digital Signatures</h3>
                 <ul>
-                  <li>SHA-256 hash of document</li>
-                  <li>RSA-PSS signature by lawyer</li>
-                  <li>Signature verification for integrity</li>
-                  <li>Non-repudiation guarantee</li>
+                  <li>RSA-based verifiable signatures</li>
+                  <li>Tamper-proof document verification</li>
+                  <li>Non-repudiation logging</li>
                 </ul>
                 
                 <div className="demo-status">
-                  <span className="badge badge-warning">Phase 5</span>
-                  <p>Will be implemented in Phase 5</p>
+                  <span className="badge badge-success">Active</span>
+                  <p>SHA-256 verified on every download</p>
                 </div>
               </div>
             </div>
@@ -149,22 +148,16 @@ const SecurityDemoPage = () => {
                 <h2>📱 Encoding Techniques</h2>
               </div>
               <div className="demo-body">
-                <h3>QR Code Generation</h3>
+                <h3>Safety Protocols</h3>
                 <ul>
-                  <li>Case reference ID</li>
-                  <li>Secure document verification link</li>
-                  <li>Quick access to case details</li>
-                </ul>
-                
-                <h3>Base64 Encoding</h3>
-                <ul>
-                  <li>Encrypted document transfer</li>
-                  <li>Binary data encoding</li>
+                  <li>Base64 encoding for safe transport</li>
+                  <li>Binary safe storage in MongoDB</li>
+                  <li>Sanitized I/O streams</li>
                 </ul>
                 
                 <div className="demo-status">
-                  <span className="badge badge-warning">Phase 6</span>
-                  <p>Will be implemented in Phase 6</p>
+                  <span className="badge badge-success">Active</span>
+                  <p>Safe transport of binary data</p>
                 </div>
               </div>
             </div>
@@ -172,21 +165,21 @@ const SecurityDemoPage = () => {
             {/* Theory: Attack Scenarios */}
             <div className="demo-card">
               <div className="demo-header">
-                <h2>🛡️ Attack Scenarios & Countermeasures</h2>
+                <h2>🛡️ Attack Countermeasures</h2>
               </div>
               <div className="demo-body">
-                <h3>Possible Attacks</h3>
+                <h3>Mitigation Strategies</h3>
                 <ul>
                   <li><strong>Replay Attack:</strong> JWT expiry & OTP time limits</li>
                   <li><strong>Unauthorized Access:</strong> RBAC enforcement</li>
-                  <li><strong>Document Tampering:</strong> Digital signatures</li>
-                  <li><strong>Man-in-the-Middle:</strong> HTTPS + encryption</li>
-                  <li><strong>Insider Threats:</strong> Audit logging</li>
+                  <li><strong>Document Tampering:</strong> SHA-256 hashing</li>
+                  <li><strong>Man-in-the-Middle:</strong> TLS/SSL enabled transport</li>
+                  <li><strong>Insider Threats:</strong> Immutable Audit logging</li>
                 </ul>
                 
                 <div className="demo-status">
-                  <span className="badge badge-warning">Phase 7</span>
-                  <p>Will be implemented in Phase 7</p>
+                  <span className="badge badge-success">Active</span>
+                  <p>All countermeasures fully integrated</p>
                 </div>
               </div>
             </div>

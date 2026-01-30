@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true
   },
-  password: {
+  passwordHash: {
     type: String,
     required: true
   },
@@ -33,17 +33,17 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  // RSA Key Pair (stored encrypted with user's password)
+  // RSA Key Pair for encryption
   publicKey: {
     type: String,
-    default: null
+    required: true
   },
-  encryptedPrivateKey: {
+  privateKey: {
     type: String,
-    default: null
+    required: true
   },
-  // MFA
-  otpSecret: {
+  // MFA - OTP
+  otp: {
     type: String,
     default: null
   },
@@ -56,13 +56,10 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  accountLocked: {
-    type: Boolean,
-    default: false
-  },
-  lockUntil: {
-    type: Date,
-    default: null
+  accountStatus: {
+    type: String,
+    enum: ['active', 'locked', 'suspended'],
+    default: 'active'
   },
   lastLogin: {
     type: Date,

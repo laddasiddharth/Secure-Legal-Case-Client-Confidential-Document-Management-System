@@ -8,8 +8,7 @@ const caseSchema = new mongoose.Schema({
   },
   title: {
     type: String,
-    required: true,
-    trim: true
+    required: true
   },
   description: {
     type: String,
@@ -17,48 +16,36 @@ const caseSchema = new mongoose.Schema({
   },
   caseType: {
     type: String,
-    enum: ['civil', 'criminal', 'corporate', 'family', 'other'],
-    required: true
+    required: true,
+    enum: ['civil', 'criminal', 'corporate', 'family', 'property', 'intellectual-property', 'other']
   },
   status: {
     type: String,
-    enum: ['open', 'in-progress', 'closed', 'archived'],
+    enum: ['open', 'pending', 'closed', 'archived'],
     default: 'open'
   },
-  // Parties involved
-  lawyer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  client: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  // QR Code for case verification
-  qrCode: {
+  priority: {
     type: String,
-    default: null
+    enum: ['low', 'medium', 'high', 'urgent'],
+    default: 'medium'
   },
-  // Dates
-  filingDate: {
-    type: Date,
-    default: Date.now
-  },
-  hearingDate: {
-    type: Date,
-    default: null
-  },
-  closureDate: {
-    type: Date,
-    default: null
-  },
-  // Metadata
-  createdBy: {
+  lawyerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
+  },
+  clientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  documents: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Document'
+  }],
+  notes: {
+    type: String,
+    default: ''
   },
   createdAt: {
     type: Date,
@@ -67,13 +54,25 @@ const caseSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
+  },
+  closedAt: {
+    type: Date,
+    default: null
   }
 });
 
 // Update timestamp on save
 caseSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
+  if (this.status === 'closed' && !this.closedAt) {
+    this.closedAt = Date.now();
+  }
   next();
 });
+
+// Indexes for efficient querying
+caseSchema.index({ lawyerId: 1, status: 1 });
+caseSchema.index({ clientId: 1, status: 1 });
+caseSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Case', caseSchema);

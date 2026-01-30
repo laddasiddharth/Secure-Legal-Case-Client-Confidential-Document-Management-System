@@ -4,41 +4,24 @@ const auditLogSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    default: null  // Allow null for failed login attempts
   },
   action: {
     type: String,
-    required: true,
-    enum: [
-      'login',
-      'logout',
-      'failed_login',
-      'register',
-      'case_created',
-      'case_updated',
-      'case_deleted',
-      'document_uploaded',
-      'document_downloaded',
-      'document_signed',
-      'document_verified',
-      'user_created',
-      'user_updated',
-      'user_deleted',
-      'role_changed',
-      'unauthorized_access'
-    ]
+    required: true
+    // Removed enum to allow any action type
   },
   resourceType: {
     type: String,
-    enum: ['user', 'case', 'document', 'system'],
-    default: 'system'
+    default: 'System'
+    // Removed enum to allow any resource type
   },
   resourceId: {
     type: mongoose.Schema.Types.ObjectId,
     default: null
   },
   details: {
-    type: String,
+    type: mongoose.Schema.Types.Mixed,  // Allow objects, not just strings
     default: null
   },
   ipAddress: {
@@ -63,5 +46,6 @@ const auditLogSchema = new mongoose.Schema({
 // Index for efficient querying
 auditLogSchema.index({ userId: 1, timestamp: -1 });
 auditLogSchema.index({ action: 1, timestamp: -1 });
+auditLogSchema.index({ timestamp: -1 });
 
 module.exports = mongoose.model('AuditLog', auditLogSchema);

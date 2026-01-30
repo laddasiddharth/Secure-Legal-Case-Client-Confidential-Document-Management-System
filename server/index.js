@@ -18,11 +18,30 @@ app.use(express.urlencoded({ extended: true }));
 // Database Connection
 mongoose
   .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+    socketTimeoutMS: 45000,
   })
-  .then(() => console.log("✅ MongoDB Connected Successfully"))
-  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+  .then(() => {
+    console.log("✅ MongoDB Connected Successfully");
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB Connection Error:", err.message);
+    console.log("⚠️  Server will continue running, but database operations will fail");
+    console.log("💡 Check your MongoDB connection string and network");
+  });
+
+// Handle MongoDB connection events
+mongoose.connection.on('connected', () => {
+  console.log('✅ Mongoose connected to MongoDB');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('❌ Mongoose connection error:', err.message);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('⚠️  Mongoose disconnected from MongoDB');
+});
 
 // Routes
 app.use("/api/auth", require("./routes/auth"));

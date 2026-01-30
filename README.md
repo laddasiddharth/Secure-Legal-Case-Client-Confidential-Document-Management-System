@@ -98,9 +98,19 @@ A distinctive dark theme with:
    ```
 
 5. **Access the application**
-   - Frontend: http://localhost:8080
+   - Frontend: http://localhost:8081 (or 8080 if available)
    - Backend API: http://localhost:5000
-   - Security Demo: http://localhost:8080/security-demo
+   - Security Demo: http://localhost:8081/security-demo
+
+6. **Create your first user**
+
+   Register through the web interface:
+   - Go to http://localhost:8081/register
+   - Fill in your details
+   - Choose your role (Lawyer, Client, or Admin)
+   - Complete registration
+
+   **Note:** Demo users have been removed. You'll need to create actual users.
 
 ## 📁 Project Structure
 

@@ -6,52 +6,16 @@ const documentSchema = new mongoose.Schema({
     ref: 'Case',
     required: true
   },
-  title: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  documentType: {
-    type: String,
-    enum: ['evidence', 'judgment', 'petition', 'affidavit', 'other'],
-    required: true
-  },
-  // Encrypted document data
-  encryptedData: {
-    type: String,
-    required: true
-  },
-  // Encrypted AES key (encrypted with recipient's RSA public key)
-  encryptedKey: {
-    type: String,
-    required: true
-  },
-  // Initialization Vector for AES
-  iv: {
-    type: String,
-    required: true
-  },
-  // Document hash for integrity verification
-  documentHash: {
-    type: String,
-    required: true
-  },
-  // Digital Signature
-  signature: {
-    type: String,
-    default: null
-  },
-  signedBy: {
+  uploadedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    default: null
+    required: true
   },
-  signedAt: {
-    type: Date,
-    default: null
-  },
-  // File metadata
   fileName: {
+    type: String,
+    required: true
+  },
+  fileType: {
     type: String,
     required: true
   },
@@ -59,31 +23,68 @@ const documentSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  mimeType: {
+  documentType: {
+    type: String,
+    enum: ['evidence', 'contract', 'agreement', 'certificate', 'report', 'other'],
+    default: 'other'
+  },
+  description: {
+    type: String,
+    default: ''
+  },
+  // Encryption fields
+  encryptedData: {
     type: String,
     required: true
   },
-  // Access control
-  uploadedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+  encryptionIV: {
+    type: String,
     required: true
   },
-  // Metadata
-  createdAt: {
-    type: Date,
-    default: Date.now
+  authTag: {
+    type: String,
+    required: true
   },
-  updatedAt: {
+  encryptionKey: {
+    type: String,
+    required: true
+    // In production, this should be stored in a secure key management service
+  },
+  fileHash: {
+    type: String,
+    required: true
+  },
+  isEncrypted: {
+    type: Boolean,
+    default: true
+  },
+  // Digital signature fields (for future implementation)
+  isSigned: {
+    type: Boolean,
+    default: false
+  },
+  signedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  signature: {
+    type: String,
+    default: null
+  },
+  signedAt: {
+    type: Date,
+    default: null
+  },
+  uploadedAt: {
     type: Date,
     default: Date.now
   }
 });
 
-// Update timestamp on save
-documentSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+// Indexes
+documentSchema.index({ caseId: 1, uploadedAt: -1 });
+documentSchema.index({ uploadedBy: 1 });
+documentSchema.index({ fileHash: 1 });
 
 module.exports = mongoose.model('Document', documentSchema);

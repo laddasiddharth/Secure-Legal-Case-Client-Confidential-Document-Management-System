@@ -1,29 +1,46 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
 import './App.css';
 
-// Pages (will be created in later phases)
+// Pages
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
 import SecurityDemoPage from './pages/SecurityDemoPage';
 
+// Role-specific Dashboards
+import LawyerDashboard from './pages/LawyerDashboard';
+import ClientDashboard from './pages/ClientDashboard';
+import AdminDashboard from './pages/AdminDashboard';
+
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+  const token = localStorage.getItem('token');
+  return token ? children : <Navigate to="/login" replace />;
+};
+
+// Dashboard Router - Redirects to role-specific dashboard
+const DashboardRouter = () => {
+  const userData = localStorage.getItem('user');
+  
+  if (!userData) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const user = JSON.parse(userData);
+  
+  switch (user.role) {
+    case 'lawyer':
+      return <Navigate to="/lawyer/dashboard" replace />;
+    case 'client':
+      return <Navigate to="/client/dashboard" replace />;
+    case 'admin':
+      return <Navigate to="/admin/dashboard" replace />;
+    default:
+      return <Navigate to="/login" replace />;
+  }
+};
+
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Check if user is authenticated (will be implemented in Phase 2)
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('userRole');
-    
-    if (token && role) {
-      setIsAuthenticated(true);
-      setUserRole(role);
-    }
-  }, []);
-
   return (
     <Router>
       <div className="app">
@@ -34,15 +51,34 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/security-demo" element={<SecurityDemoPage />} />
 
-          {/* Protected Routes */}
+          {/* Dashboard Router - Redirects to role-specific dashboard */}
+          <Route path="/dashboard" element={<DashboardRouter />} />
+
+          {/* Role-Specific Protected Routes */}
           <Route 
-            path="/dashboard" 
+            path="/lawyer/dashboard" 
             element={
-              isAuthenticated ? (
-                <DashboardPage role={userRole} />
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              <ProtectedRoute>
+                <LawyerDashboard />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/client/dashboard" 
+            element={
+              <ProtectedRoute>
+                <ClientDashboard />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
             } 
           />
 
