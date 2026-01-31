@@ -273,7 +273,7 @@ router.get('/audit-logs', async (req, res) => {
     if (action) filter.action = action;
 
     const logs = await AuditLog.find(filter)
-      .populate('userId', 'fullName email role')
+      .populate('userId', 'fullName email role username')
       .sort({ timestamp: -1 })
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit));

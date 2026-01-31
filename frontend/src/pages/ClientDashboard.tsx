@@ -57,6 +57,7 @@ const ClientDashboard = () => {
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [qrCode, setQrCode] = useState<string | null>(null);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -111,8 +112,12 @@ const ClientDashboard = () => {
     
     try {
       setLoadingDocuments(true);
-      const docsRes = await documentAPI.getByCaseId(caseItem._id);
+      const [docsRes, qrRes] = await Promise.all([
+        documentAPI.getByCaseId(caseItem._id),
+        caseAPI.getQRCode(caseItem._id)
+      ]);
       setCaseDocuments(docsRes.documents || []);
+      setQrCode(qrRes.qrCode);
     } catch (err: any) {
       console.error('Error fetching documents:', err);
       setError(err.message || 'Failed to load documents');
@@ -369,6 +374,33 @@ const ClientDashboard = () => {
                 <p>Email: {selectedCase?.lawyerId?.email}</p>
                 {selectedCase?.lawyerId?.phoneNumber && (
                   <p>Phone: {selectedCase.lawyerId.phoneNumber}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="detail-section">
+              <h3>Case Verification (QR)</h3>
+              <div className="qr-container" style={{ 
+                background: 'var(--bg-tertiary)', 
+                padding: '20px', 
+                borderRadius: '8px',
+                textAlign: 'center',
+                border: '1px solid var(--border-color)'
+              }}>
+                {qrCode ? (
+                  <>
+                    <img src={qrCode} alt="Case Verification QR" style={{ 
+                      width: '200px', 
+                      height: '200px',
+                      border: '4px solid var(--secondary-color)',
+                      borderRadius: '4px'
+                    }} />
+                    <p style={{ marginTop: '10px', fontSize: '0.8rem', color: 'var(--secondary-color)' }}>
+                      Scan to verify case authenticity in our system
+                    </p>
+                  </>
+                ) : (
+                  <p>Loading verification code...</p>
                 )}
               </div>
             </div>

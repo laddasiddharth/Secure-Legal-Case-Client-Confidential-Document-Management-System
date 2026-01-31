@@ -22,7 +22,7 @@ interface AuditLog {
   action: string;
   resourceType: string;
   details: any;
-  createdAt: string;
+  timestamp: string;
 }
 
 interface Stats {
@@ -376,7 +376,7 @@ const AdminDashboard = () => {
                     <p>
                       User: <strong>{log.userId?.username || 'System/Guest'}</strong> - {log.resourceType}
                     </p>
-                    <span className="activity-time">{formatDate(log.createdAt)}</span>
+                    <span className="activity-time">{formatDate(log.timestamp)}</span>
                   </div>
                 </div>
               ))
@@ -511,7 +511,7 @@ const AdminDashboard = () => {
                 <tbody>
                   {fullAuditLogs.map(log => (
                     <tr key={log._id}>
-                      <td style={{ fontSize: '0.85rem' }}>{formatDate(log.createdAt)}</td>
+                      <td style={{ fontSize: '0.85rem' }}>{formatDate(log.timestamp)}</td>
                       <td>{log.userId?.username || 'System'}</td>
                       <td><span className={`role-badge ${log.action.includes('FAILED') ? 'role-admin' : 'role-lawyer'}`}>{log.action}</span></td>
                       <td>{log.resourceType}</td>

@@ -152,12 +152,13 @@ const SecurityDemoPage = () => {
                 <ul>
                   <li>Base64 encoding for safe transport</li>
                   <li>Binary safe storage in MongoDB</li>
+                  <li><strong>QR Code Generation:</strong> For physical case verification</li>
                   <li>Sanitized I/O streams</li>
                 </ul>
                 
                 <div className="demo-status">
                   <span className="badge badge-success">Active</span>
-                  <p>Safe transport of binary data</p>
+                  <p>Safe transport and physical verification active</p>
                 </div>
               </div>
             </div>

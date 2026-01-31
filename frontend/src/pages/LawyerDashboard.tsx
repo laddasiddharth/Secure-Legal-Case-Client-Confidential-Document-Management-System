@@ -62,9 +62,11 @@ const LawyerDashboard = () => {
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
   const [showAllCasesModal, setShowAllCasesModal] = useState(false);
   const [showClientsModal, setShowClientsModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
   const [selectedCaseForAction, setSelectedCaseForAction] = useState<Case | null>(null);
   const [caseDocuments, setCaseDocuments] = useState<Document[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
+  const [qrCode, setQrCode] = useState<string | null>(null);
   
   // Form states
   const [newCase, setNewCase] = useState({
@@ -207,16 +209,6 @@ const LawyerDashboard = () => {
     }
   };
 
-  const handleDeleteCase = async (caseId: string) => {
-    if (!window.confirm('Are you sure you want to delete this case? This action cannot be undone.')) return;
-    try {
-      await caseAPI.delete(caseId);
-      fetchData();
-      alert('Case deleted successfully');
-    } catch (err: any) {
-      alert(err.message || 'Failed to delete case');
-    }
-  };
 
   const handleViewDocuments = async (caseId: string) => {
     const caseItem = cases.find(c => c._id === caseId);
@@ -226,12 +218,28 @@ const LawyerDashboard = () => {
     setShowDocumentsModal(true);
     setLoadingDocs(true);
     try {
-      const res = await documentAPI.getByCaseId(caseId);
-      setCaseDocuments(res.documents || []);
+      const [docsRes, qrRes] = await Promise.all([
+        documentAPI.getByCaseId(caseId),
+        caseAPI.getQRCode(caseId)
+      ]);
+      setCaseDocuments(docsRes.documents || []);
+      setQrCode(qrRes.qrCode);
     } catch (err: any) {
-      console.error('Error fetching documents:', err);
+      console.error('Error fetching docs/qr:', err);
     } finally {
       setLoadingDocs(false);
+    }
+  };
+
+  const handleViewQR = async (caseItem: Case) => {
+    try {
+      setSelectedCaseForAction(caseItem);
+      setShowQRModal(true);
+      setQrCode(null);
+      const res = await caseAPI.getQRCode(caseItem._id);
+      setQrCode(res.qrCode);
+    } catch (err) {
+      console.error('QR error:', err);
     }
   };
 
@@ -518,8 +526,8 @@ const LawyerDashboard = () => {
                       <td>{caseItem.documents?.length || 0}</td>
                       <td>
                         <button className="btn-icon" title="View Documents" onClick={() => handleViewDocuments(caseItem._id)}>📄</button>
+                        <button className="btn-icon" title="View QR Code" onClick={() => handleViewQR(caseItem)}>🔍</button>
                         <button className="btn-icon" title="Edit Case" onClick={() => handleEditCase(caseItem)}>✏️</button>
-                        <button className="btn-icon" title="Delete Case" onClick={() => handleDeleteCase(caseItem._id)}>🗑️</button>
                       </td>
                     </tr>
                   ))}
@@ -894,8 +902,9 @@ const LawyerDashboard = () => {
                     <td>{c.clientId?.fullName}</td>
                     <td><span className={`status-badge status-${c.status}`}>{c.status}</span></td>
                     <td>
-                      <button className="btn-icon" onClick={() => { handleViewDocuments(c._id); setShowAllCasesModal(false); }}>📄</button>
-                      <button className="btn-icon" onClick={() => { handleEditCase(c); setShowAllCasesModal(false); }}>✏️</button>
+                      <button className="btn-icon" title="Documents" onClick={() => { handleViewDocuments(c._id); setShowAllCasesModal(false); }}>📄</button>
+                      <button className="btn-icon" title="QR Code" onClick={() => { handleViewQR(c); setShowAllCasesModal(false); }}>🔍</button>
+                      <button className="btn-icon" title="Edit" onClick={() => { handleEditCase(c); setShowAllCasesModal(false); }}>✏️</button>
                     </td>
                   </tr>
                 ))}
@@ -940,6 +949,36 @@ const LawyerDashboard = () => {
                 </tbody>
               </table>
             </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* QR Code Modal */}
+      <Modal
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        title={selectedCaseForAction ? `Verification: ${selectedCaseForAction.caseNumber}` : 'Case Verification'}
+        size="small"
+      >
+        <div style={{ textAlign: 'center', padding: '20px' }}>
+          {qrCode ? (
+            <>
+              <div style={{ 
+                background: '#fff', 
+                padding: '15px', 
+                display: 'inline-block',
+                borderRadius: '8px',
+                border: '4px solid var(--secondary-color)'
+              }}>
+                <img src={qrCode} alt="Case QR Code" style={{ width: '250px', height: '250px' }} />
+              </div>
+              <h3 style={{ marginTop: '20px', color: 'var(--secondary-color)' }}>{selectedCaseForAction?.title}</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                Scan this code to verify the authenticity of this legal case.
+              </p>
+            </>
+          ) : (
+            <div className="loading-spinner" style={{ margin: '40px auto' }}></div>
           )}
         </div>
       </Modal>

@@ -108,6 +108,11 @@ export const caseAPI = {
   getClients: async () => {
     return apiRequest('/cases/clients/list');
   },
+
+  // Get case QR code
+  getQRCode: async (id: string) => {
+    return apiRequest(`/cases/${id}/qr`);
+  },
 };
 
 // ==================== DOCUMENT APIs ====================
