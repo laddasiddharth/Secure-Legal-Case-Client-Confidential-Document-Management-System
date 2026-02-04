@@ -370,7 +370,16 @@ router.get("/:id/qr", authMiddleware, async (req, res) => {
       status: caseData.status,
       lawyer: caseData.lawyerId.fullName,
       client: caseData.clientId.fullName,
-      verifiedAt: new Date().toISOString(),
+      verifiedAt: new Date(caseData.createdAt).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+        timeZoneName: 'short'
+      }),
       system: "Secure Legal Case & Client Confidential DMS",
     };
 
