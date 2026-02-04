@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 8080,
-    open: true
+    open: false
   },
   build: {
     outDir: 'dist',
