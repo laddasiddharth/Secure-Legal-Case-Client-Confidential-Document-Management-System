@@ -1,5 +1,5 @@
-/* Lawyer Dashboard Styles */
-.lawyer-dashboard {
+/* Admin Dashboard Styles */
+.admin-dashboard {
   min-height: 100vh;
   background: var(--bg-primary);
   color: var(--text-primary);
@@ -29,12 +29,15 @@
 
 /* Header */
 .dashboard-header {
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  padding: var(--spacing-lg) 0;
+  background: rgba(26, 26, 26, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: var(--spacing-md) 0;
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
 .header-content {
@@ -115,21 +118,29 @@
 
 .stat-card {
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  background-image: var(--grad-surface);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-lg);
   padding: var(--spacing-xl);
   display: flex;
   gap: var(--spacing-lg);
   align-items: center;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
 }
 
 .stat-card:hover {
-  border-color: var(--secondary-color);
-  box-shadow: 0 0 20px rgba(212, 165, 116, 0.3);
+  transform: translateY(-5px);
+  border-color: rgba(212, 165, 116, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
 .stat-icon {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
   flex-shrink: 0;
 }
 
@@ -172,18 +183,20 @@
 
 .action-card {
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  background-image: var(--grad-surface);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-lg);
   padding: var(--spacing-xl);
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
+  outline: none;
 }
 
 .action-card:hover {
   border-color: var(--secondary-color);
-  box-shadow: 0 0 20px rgba(212, 165, 116, 0.4);
-  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  transform: translateY(-8px);
 }
 
 .action-icon {

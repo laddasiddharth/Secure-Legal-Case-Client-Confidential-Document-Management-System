@@ -10,7 +10,7 @@ const LandingPage = () => {
           <div className="nav-content">
             <div className="nav-brand">
               <span className="nav-icon">🔐</span>
-              <span className="nav-title">Legal Docs</span>
+              <span className="nav-title text-gradient">Legal Docs</span>
             </div>
             <div className="nav-links">
               <Link to="/login" className="btn btn-outline btn-sm">
@@ -31,12 +31,9 @@ const LandingPage = () => {
       <section className="hero">
         <div className="container">
           <div className="hero-content">
-            <h1 className="hero-title">
+            <h1 className="hero-title text-gradient">
               🔐 Secure Legal Document Management
-            </h1>
-            <p className="hero-subtitle">
-              Military-grade encryption for confidential legal cases and client documents
-            </p>
+            </h1>       
             <p className="hero-description">
               A production-grade system designed for law firms and courts to handle 
               extremely sensitive legal data with the highest security standards.
@@ -94,7 +91,7 @@ const LandingPage = () => {
         <div className="container">
           <h2 className="section-title">👥 User Roles</h2>
           <div className="roles-grid">
-            <div className="role-card">
+            <div className="role-card glass">
               <h3>⚖️ Lawyer</h3>
               <ul>
                 <li>Create and manage cases</li>
@@ -104,7 +101,7 @@ const LandingPage = () => {
               </ul>
             </div>
 
-            <div className="role-card">
+            <div className="role-card glass">
               <h3>👤 Client</h3>
               <ul>
                 <li>View assigned cases</li>
@@ -114,7 +111,7 @@ const LandingPage = () => {
               </ul>
             </div>
 
-            <div className="role-card">
+            <div className="role-card glass">
               <h3>🛡️ Court Admin</h3>
               <ul>
                 <li>Full system access</li>

@@ -190,7 +190,7 @@ const ClientDashboard = () => {
       <header className="dashboard-header">
         <div className="header-content">
           <div className="header-left">
-            <h1>👤 Client Portal</h1>
+            <h1 className="text-gradient">👤 Client Portal</h1>
             <p className="header-subtitle">View Your Legal Cases</p>
           </div>
           <div className="header-right">
@@ -217,7 +217,7 @@ const ClientDashboard = () => {
 
         {/* Welcome Section */}
         <section className="welcome-section">
-          <h2>Welcome, {user?.fullName}!</h2>
+          <h2 className="text-gradient">Welcome, {user?.fullName}!</h2>
           <p>Track your legal cases and access important documents securely.</p>
         </section>
 
@@ -227,7 +227,7 @@ const ClientDashboard = () => {
             <div className="stat-icon">📁</div>
             <div className="stat-content">
               <h3>Total Cases</h3>
-              <p className="stat-number">{stats.total}</p>
+              <p className="stat-number text-gradient">{stats.total}</p>
               <span className="stat-label">All Time</span>
             </div>
           </div>
@@ -236,7 +236,7 @@ const ClientDashboard = () => {
             <div className="stat-icon">⏳</div>
             <div className="stat-content">
               <h3>Active Cases</h3>
-              <p className="stat-number">{stats.active}</p>
+              <p className="stat-number text-gradient">{stats.active}</p>
               <span className="stat-label">In Progress</span>
             </div>
           </div>
@@ -245,7 +245,7 @@ const ClientDashboard = () => {
             <div className="stat-icon">✅</div>
             <div className="stat-content">
               <h3>Closed Cases</h3>
-              <p className="stat-number">{stats.closed}</p>
+              <p className="stat-number text-gradient">{stats.closed}</p>
               <span className="stat-label">Completed</span>
             </div>
           </div>
@@ -254,7 +254,7 @@ const ClientDashboard = () => {
             <div className="stat-icon">📄</div>
             <div className="stat-content">
               <h3>Documents</h3>
-              <p className="stat-number">
+              <p className="stat-number text-gradient">
                 {cases.reduce((sum, c) => sum + (c.documents?.length || 0), 0)}
               </p>
               <span className="stat-label">Total Files</span>

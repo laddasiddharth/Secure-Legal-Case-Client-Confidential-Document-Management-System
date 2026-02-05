@@ -97,7 +97,7 @@ const LoginPage = () => {
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-header">
-            <h1>🔐 Login</h1>
+            <h1 className="text-gradient">🔐 Login</h1>
             <p>Access your secure legal documents</p>
           </div>
 

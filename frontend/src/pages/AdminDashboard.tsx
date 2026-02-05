@@ -211,7 +211,7 @@ const AdminDashboard = () => {
       <header className="dashboard-header">
         <div className="header-content">
           <div className="header-left">
-            <h1>🔧 Admin Portal</h1>
+            <h1 className="text-gradient">🔧 Admin Portal</h1>
             <p className="header-subtitle">System Management & Control</p>
           </div>
           <div className="header-right">
@@ -238,7 +238,7 @@ const AdminDashboard = () => {
 
         {/* Welcome Section */}
         <section className="welcome-section">
-          <h2>System Administration</h2>
+          <h2 className="text-gradient">System Administration</h2>
           <p>Manage users, monitor system activity, and configure settings.</p>
         </section>
 
@@ -248,7 +248,7 @@ const AdminDashboard = () => {
             <div className="stat-icon">👥</div>
             <div className="stat-content">
               <h3>Total Users</h3>
-              <p className="stat-number">{stats?.users.total || 0}</p>
+              <p className="stat-number text-gradient">{stats?.users.total || 0}</p>
               <span className="stat-label">
                 {stats?.users.lawyers || 0} Lawyers • {stats?.users.clients || 0} Clients • {stats?.users.admins || 0} Admins
               </span>
@@ -259,7 +259,7 @@ const AdminDashboard = () => {
             <div className="stat-icon">📁</div>
             <div className="stat-content">
               <h3>Total Cases</h3>
-              <p className="stat-number">{stats?.cases.total || 0}</p>
+              <p className="stat-number text-gradient">{stats?.cases.total || 0}</p>
               <span className="stat-label">
                 {stats?.cases.active || 0} Active • {stats?.cases.closed || 0} Closed
               </span>
@@ -270,7 +270,7 @@ const AdminDashboard = () => {
             <div className="stat-icon">📄</div>
             <div className="stat-content">
               <h3>Documents</h3>
-              <p className="stat-number">{stats?.documents.total || 0}</p>
+              <p className="stat-number text-gradient">{stats?.documents.total || 0}</p>
               <span className="stat-label">All Encrypted</span>
             </div>
           </div>

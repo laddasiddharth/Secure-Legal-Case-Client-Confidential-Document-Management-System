@@ -29,12 +29,15 @@
 
 /* Header */
 .dashboard-header {
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  padding: var(--spacing-lg) 0;
+  background: rgba(26, 26, 26, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: var(--spacing-md) 0;
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
 .header-content {
@@ -115,21 +118,45 @@
 
 .stat-card {
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  background-image: var(--grad-surface);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-lg);
   padding: var(--spacing-xl);
   display: flex;
   gap: var(--spacing-lg);
   align-items: center;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--grad-premium);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .stat-card:hover {
-  border-color: var(--secondary-color);
-  box-shadow: 0 0 20px rgba(212, 165, 116, 0.3);
+  transform: translateY(-5px);
+  border-color: rgba(212, 165, 116, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(212, 165, 116, 0.1);
+}
+
+.stat-card:hover::after {
+  opacity: 1;
 }
 
 .stat-icon {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
   flex-shrink: 0;
 }
 
@@ -172,18 +199,25 @@
 
 .action-card {
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  background-image: var(--grad-surface);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-lg);
   padding: var(--spacing-xl);
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  outline: none;
 }
 
 .action-card:hover {
   border-color: var(--secondary-color);
-  box-shadow: 0 0 20px rgba(212, 165, 116, 0.4);
-  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 15px rgba(212, 165, 116, 0.2);
+  transform: translateY(-8px);
+  background: var(--bg-tertiary);
 }
 
 .action-icon {
@@ -213,9 +247,11 @@
 
 .cases-table {
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  background-image: var(--grad-surface);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-xl);
 }
 
 .cases-table table {
@@ -224,35 +260,48 @@
 }
 
 .cases-table thead {
-  background: var(--primary-color);
-  border-bottom: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 2px solid var(--border-color);
 }
 
 .cases-table th {
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: var(--spacing-lg);
   text-align: left;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--secondary-color);
   font-family: 'JetBrains Mono', monospace;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
 }
 
 .cases-table td {
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-bottom: 1px solid var(--border-color);
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   color: var(--text-primary);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.cases-table tbody tr {
+  transition: all 0.2s ease;
 }
 
 .cases-table tbody tr:hover {
-  background: var(--primary-light);
+  background: rgba(212, 165, 116, 0.03);
+}
+
+.cases-table tbody tr:hover td {
+  color: var(--secondary-light);
 }
 
 .case-id {
   font-family: 'JetBrains Mono', monospace;
   color: var(--secondary-color);
   font-weight: 600;
+  background: rgba(212, 165, 116, 0.1);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
 }
 
 .status-badge {
@@ -521,11 +570,14 @@ textarea.form-input {
 /* Modal Specific Table Styles */
 .users-table, .documents-table {
   width: 100%;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
   overflow: hidden;
   margin-top: var(--spacing-md);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
 }
 
 .users-table table, .documents-table table {
@@ -534,21 +586,55 @@ textarea.form-input {
 }
 
 .users-table th, .documents-table th {
-  background: var(--primary-color);
+  background: rgba(212, 165, 116, 0.1);
   color: var(--secondary-color);
-  padding: 1rem;
+  padding: 1.25rem 1rem;
   text-align: left;
   font-size: 0.85rem;
   font-family: 'JetBrains Mono', monospace;
   text-transform: uppercase;
-  border-bottom: 1px solid var(--border-color);
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(212, 165, 116, 0.2);
 }
 
 .users-table td, .documents-table td {
-  padding: 1rem;
-  border-bottom: 1px solid var(--border-color);
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   font-size: 0.95rem;
   color: var(--text-primary);
+}
+
+.users-table tr:hover, .documents-table tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.users-table tr:last-child td, .documents-table tr:last-child td {
+  border-bottom: none;
+}
+
+.modal-section-title {
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modal-section-description {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.6;
+}
+
+.empty-message-container {
+  text-align: center;
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-md);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  font-style: italic;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .users-table tr:hover, .documents-table tr:hover {

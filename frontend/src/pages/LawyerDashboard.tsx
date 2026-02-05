@@ -401,7 +401,7 @@ const LawyerDashboard = () => {
 
         {/* Welcome Section */}
         <section className="welcome-section">
-          <h2>Welcome back, {user?.fullName}!</h2>
+          <h2 className="text-gradient">Welcome back, {user?.fullName}!</h2>
           <p>Manage your cases, documents, and clients from your secure portal.</p>
         </section>
 
@@ -411,7 +411,7 @@ const LawyerDashboard = () => {
             <div className="stat-icon">📁</div>
             <div className="stat-content">
               <h3>Active Cases</h3>
-              <p className="stat-number">{stats.active}</p>
+              <p className="stat-number text-gradient">{stats.active}</p>
               <span className="stat-label">In Progress</span>
             </div>
           </div>
@@ -420,7 +420,7 @@ const LawyerDashboard = () => {
             <div className="stat-icon">📄</div>
             <div className="stat-content">
               <h3>Total Cases</h3>
-              <p className="stat-number">{stats.total}</p>
+              <p className="stat-number text-gradient">{stats.total}</p>
               <span className="stat-label">All Time</span>
             </div>
           </div>
@@ -428,9 +428,9 @@ const LawyerDashboard = () => {
           <div className="stat-card">
             <div className="stat-icon">👥</div>
             <div className="stat-content">
-              <h3>Registry Clients</h3>
-              <p className="stat-number">{clients.length}</p>
-              <span className="stat-label">Available for Cases</span>
+              <h3>My Clients</h3>
+              <p className="stat-number text-gradient">{new Set(cases.map(c => c.clientId?._id).filter(id => !!id)).size}</p>
+              <span className="stat-label">Active Connections</span>
             </div>
           </div>
 
@@ -438,7 +438,7 @@ const LawyerDashboard = () => {
             <div className="stat-icon">✅</div>
             <div className="stat-content">
               <h3>Closed Cases</h3>
-              <p className="stat-number">{stats.closed}</p>
+              <p className="stat-number text-gradient">{stats.closed}</p>
               <span className="stat-label">Completed</span>
             </div>
           </div>
@@ -831,7 +831,7 @@ const LawyerDashboard = () => {
           {loadingDocs ? (
             <div className="loading-spinner" style={{ margin: '40px auto' }}></div>
           ) : caseDocuments.length === 0 ? (
-            <p className="empty-message" style={{textAlign: 'center', padding: '20px'}}>No documents attached to this case.</p>
+            <div className="empty-message-container">No documents attached to this case.</div>
           ) : (
             <div className="documents-table">
               <table>
@@ -918,38 +918,88 @@ const LawyerDashboard = () => {
       <Modal
         isOpen={showClientsModal}
         onClose={() => setShowClientsModal(false)}
-        title="System Clients"
+        title="Client Management"
         size="large"
       >
         <div className="clients-view">
-          {clients.length === 0 ? (
-            <p className="empty-message" style={{textAlign: 'center', padding: '40px'}}>No clients registered in the system.</p>
-          ) : (
-            <div className="users-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Your Cases</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {clients.map(client => (
-                    <tr key={client._id}>
-                      <td>{client.fullName}</td>
-                      <td>{client.email}</td>
-                      <td>{client.phoneNumber || 'N/A'}</td>
-                      <td>
-                        {cases.filter(c => c.clientId?._id === client._id).length}
-                      </td>
+          <div className="clients-section">
+            <h3 className="modal-section-title text-gradient">
+              👥 My Associated Clients
+            </h3>
+            {clients.filter(client => cases.some(c => c.clientId?._id === client._id)).length === 0 ? (
+              <div className="empty-message-container">
+                You haven't added any clients to your cases yet.
+              </div>
+            ) : (
+              <div className="users-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Active Cases</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody>
+                    {clients.filter(client => cases.some(c => c.clientId?._id === client._id)).map(client => (
+                      <tr key={client._id}>
+                        <td>{client.fullName}</td>
+                        <td>{client.email}</td>
+                        <td>
+                          {cases.filter(c => c.clientId?._id === client._id).length}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="clients-section" style={{ marginTop: '40px' }}>
+            <h3 className="modal-section-title text-gradient">
+              🔍 Global Client Registry (Available to Link)
+            </h3>
+            <p className="modal-section-description">
+              These are all clients registered in the management system. You can create a new case for them to add them to your practice.
+            </p>
+            {clients.length === 0 ? (
+              <div className="empty-message-container">No clients in registry.</div>
+            ) : (
+              <div className="users-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {clients.map(client => (
+                      <tr key={client._id}>
+                        <td>{client.fullName}</td>
+                        <td>{client.email}</td>
+                        <td>
+                          <button 
+                            className="btn btn-sm btn-primary" 
+                            style={{ padding: '0.6rem 1.2rem', fontWeight: '600' }}
+                            onClick={() => {
+                              setNewCase({ ...newCase, clientId: client._id });
+                              setShowClientsModal(false);
+                              setShowNewCaseModal(true);
+                            }}
+                          >
+                            + Create Case
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </Modal>
 

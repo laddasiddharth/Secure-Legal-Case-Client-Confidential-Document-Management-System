@@ -121,7 +121,7 @@ const RegisterPage = () => {
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-header">
-            <h1>📝 Register</h1>
+            <h1 className="text-gradient">📝 Register</h1>
             <p>Create your secure account</p>
           </div>
 

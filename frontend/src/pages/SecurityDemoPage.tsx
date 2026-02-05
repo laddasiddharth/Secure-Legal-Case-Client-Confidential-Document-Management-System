@@ -78,7 +78,7 @@ const SecurityBlueprint = () => {
 
       <div className="demo-content">
         <div className="container">
-          <h1 className="demo-title">🛡️ Security Blueprint</h1>
+          <h1 className="demo-title text-gradient">🛡️ Security Blueprint</h1>
           <p className="demo-subtitle">
             Interactive visualization of our FIPS-compliant security infrastructure
           </p>
@@ -159,7 +159,7 @@ const SecurityBlueprint = () => {
             {/* Part 3: Encryption */}
             <div className="demo-card">
               <div className="demo-header">
-                <h2>🔒 Hybrid Encryption</h2>
+                <h2 className="text-gradient">🔒 Hybrid Encryption</h2>
               </div>
               <div className="demo-body">
                 <h3>Key Management</h3>
@@ -209,7 +209,7 @@ const SecurityBlueprint = () => {
             {/* Part 4: Hashing & Signatures */}
             <div className="demo-card">
               <div className="demo-header">
-                <h2>✍️ Hashing & Integrity</h2>
+                <h2 className="text-gradient">✍️ Hashing & Integrity</h2>
               </div>
               <div className="demo-body">
                 <h3>Data Integrity</h3>
