@@ -374,7 +374,7 @@ const LawyerDashboard = () => {
       <header className="dashboard-header">
         <div className="header-content">
           <div className="header-left">
-            <h1>⚖️ Lawyer Portal</h1>
+            <h1>Lawyer Portal</h1>
             <p className="header-subtitle">Legal Case Management System</p>
           </div>
           <div className="header-right">
@@ -408,7 +408,7 @@ const LawyerDashboard = () => {
         {/* Stats Cards */}
         <div className="stats-grid">
           <div className="stat-card">
-            <div className="stat-icon">📁</div>
+            <div className="stat-icon">📂</div>
             <div className="stat-content">
               <h3>Active Cases</h3>
               <p className="stat-number text-gradient">{stats.active}</p>
@@ -449,7 +449,7 @@ const LawyerDashboard = () => {
           <h2>Quick Actions</h2>
           <div className="actions-grid">
             <button className="action-card" onClick={() => setShowNewCaseModal(true)}>
-              <div className="action-icon">➕</div>
+              <div className="action-icon">📂</div>
               <h3>New Case</h3>
               <p>Create a new legal case</p>
             </button>
@@ -525,9 +525,9 @@ const LawyerDashboard = () => {
                       <td>{formatDate(caseItem.updatedAt)}</td>
                       <td>{caseItem.documents?.length || 0}</td>
                       <td>
-                        <button className="btn-icon" title="View Documents" onClick={() => handleViewDocuments(caseItem._id)}>📄</button>
-                        <button className="btn-icon" title="View QR Code" onClick={() => handleViewQR(caseItem)}>🔍</button>
-                        <button className="btn-icon" title="Edit Case" onClick={() => handleEditCase(caseItem)}>✏️</button>
+                        <button className="btn-table-action" title="View Documents" onClick={() => handleViewDocuments(caseItem._id)}>📄</button>
+                        <button className="btn-table-action" title="Verify Case" onClick={() => handleViewQR(caseItem)}>🔍</button>
+                        <button className="btn-table-action" title="Edit Case" onClick={() => handleEditCase(caseItem)}>✏️</button>
                       </td>
                     </tr>
                   ))}
@@ -858,11 +858,11 @@ const LawyerDashboard = () => {
                       </td>
                       <td>{formatDate(doc.uploadedAt)}</td>
                       <td>
-                        <button className="btn-icon" title="Download" onClick={() => handleDownloadDocument(doc._id, doc.fileName)}>📥</button>
+                        <button className="btn-table-action" title="Download" onClick={() => handleDownloadDocument(doc._id, doc.fileName)}>📥</button>
                         {!doc.isSigned && (
-                          <button className="btn-icon" title="Sign Document" onClick={() => handleSignDocument(doc._id)}>✍️</button>
+                          <button className="btn-table-action" title="Sign Document" onClick={() => handleSignDocument(doc._id)}>✍️</button>
                         )}
-                        <button className="btn-icon" title="Delete" onClick={() => handleDeleteDocument(doc._id)}>🗑️</button>
+                        <button className="btn-table-action danger" title="Delete" onClick={() => handleDeleteDocument(doc._id)}>🗑️</button>
                       </td>
                     </tr>
                   ))}
@@ -902,9 +902,9 @@ const LawyerDashboard = () => {
                     <td>{c.clientId?.fullName}</td>
                     <td><span className={`status-badge status-${c.status}`}>{c.status}</span></td>
                     <td>
-                      <button className="btn-icon" title="Documents" onClick={() => { handleViewDocuments(c._id); setShowAllCasesModal(false); }}>📄</button>
-                      <button className="btn-icon" title="QR Code" onClick={() => { handleViewQR(c); setShowAllCasesModal(false); }}>🔍</button>
-                      <button className="btn-icon" title="Edit" onClick={() => { handleEditCase(c); setShowAllCasesModal(false); }}>✏️</button>
+                      <button className="btn-table-action" title="Documents" onClick={() => { handleViewDocuments(c._id); setShowAllCasesModal(false); }}>📄</button>
+                      <button className="btn-table-action" title="QR Code" onClick={() => { handleViewQR(c); setShowAllCasesModal(false); }}>🔍</button>
+                      <button className="btn-table-action" title="Edit" onClick={() => { handleEditCase(c); setShowAllCasesModal(false); }}>✏️</button>
                     </td>
                   </tr>
                 ))}
@@ -924,7 +924,7 @@ const LawyerDashboard = () => {
         <div className="clients-view">
           <div className="clients-section">
             <h3 className="modal-section-title text-gradient">
-              👥 My Associated Clients
+              My Associated Clients
             </h3>
             {clients.filter(client => cases.some(c => c.clientId?._id === client._id)).length === 0 ? (
               <div className="empty-message-container">

@@ -124,10 +124,6 @@ label {
   cursor: pointer;
 }
 
-label[for]:hover {
-  color: var(--primary-color);
-}
-
 /* Required field indicator */
 input:required + label::after,
 select:required + label::after,
@@ -185,10 +181,6 @@ th[scope="row"] {
 a {
   text-decoration: underline;
   text-decoration-skip-ink: auto;
-}
-
-a:hover {
-  text-decoration-thickness: 2px;
 }
 
 /* Button vs link distinction */

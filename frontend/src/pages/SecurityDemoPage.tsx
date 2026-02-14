@@ -87,7 +87,8 @@ const SecurityBlueprint = () => {
             {/* Part 1: Authentication */}
             <div className="demo-card">
               <div className="demo-header">
-                <h2>🔑 Authentication</h2>
+                <div className="demo-icon">🔑</div>
+                <h2>Authentication</h2>
               </div>
               <div className="demo-body">
                 <h3>Single-Factor Authentication (SFA)</h3>
@@ -114,7 +115,8 @@ const SecurityBlueprint = () => {
             {/* Part 2: Authorization */}
             <div className="demo-card">
               <div className="demo-header">
-                <h2>👥 Authorization (RBAC)</h2>
+                <div className="demo-icon">👥</div>
+                <h2>Authorization (RBAC)</h2>
               </div>
               <div className="demo-body">
                 <h3>Access Control Matrix</h3>
@@ -159,7 +161,8 @@ const SecurityBlueprint = () => {
             {/* Part 3: Encryption */}
             <div className="demo-card">
               <div className="demo-header">
-                <h2 className="text-gradient">🔒 Hybrid Encryption</h2>
+                <div className="demo-icon">🔒</div>
+                <h2 className="text-gradient">Hybrid Encryption</h2>
               </div>
               <div className="demo-body">
                 <h3>Key Management</h3>
@@ -209,7 +212,8 @@ const SecurityBlueprint = () => {
             {/* Part 4: Hashing & Signatures */}
             <div className="demo-card">
               <div className="demo-header">
-                <h2 className="text-gradient">✍️ Hashing & Integrity</h2>
+                <div className="demo-icon">✍️</div>
+                <h2 className="text-gradient">Hashing & Integrity</h2>
               </div>
               <div className="demo-body">
                 <h3>Data Integrity</h3>

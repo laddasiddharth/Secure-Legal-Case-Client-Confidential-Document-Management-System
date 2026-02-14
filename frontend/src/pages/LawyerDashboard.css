@@ -153,11 +153,27 @@
 }
 
 .stat-icon {
-  font-size: 2.2rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
+  font-size: 1.5rem;
+  width: 54px;
+  height: 54px;
+  background: rgba(212, 165, 116, 0.08); /* Sophisticated gold tint */
+  border: 1px solid rgba(212, 165, 116, 0.2);
+  color: var(--secondary-color);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  box-shadow: inset 0 0 10px rgba(212, 165, 116, 0.05);
+  transition: all var(--transition-base);
+}
+
+.stat-card:hover .stat-icon {
+  background: var(--secondary-color);
+  color: var(--primary-dark);
+  border-color: var(--secondary-color);
+  transform: scale(1.1) rotate(-5deg);
+  box-shadow: 0 0 20px rgba(212, 165, 116, 0.4);
 }
 
 .stat-content h3 {
@@ -221,8 +237,26 @@
 }
 
 .action-icon {
-  font-size: 2.5rem;
+  font-size: 1.75rem;
+  width: 64px;
+  height: 64px;
+  background: rgba(212, 165, 116, 0.05);
+  border: 1px solid rgba(212, 165, 116, 0.2);
+  color: var(--secondary-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: var(--spacing-md);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.action-card:hover .action-icon {
+  background: var(--grad-premium);
+  color: var(--primary-dark);
+  transform: scale(1.15) translateY(-5px);
+  box-shadow: 0 10px 25px rgba(212, 165, 116, 0.4);
 }
 
 .action-card h3 {
@@ -483,8 +517,55 @@ textarea.form-input {
   opacity: 1;
 }
 
+.btn-table-action {
+  background: rgba(212, 165, 116, 0.05);
+  border: 1px solid rgba(212, 165, 116, 0.2);
+  color: var(--secondary-color);
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  height: 38px;
+}
+
+.btn-table-action:hover {
+  background: rgba(212, 165, 116, 0.15);
+  border-color: var(--secondary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-table-action.danger {
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.03);
+}
+
+.btn-table-action.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border-color: #ef4444;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .btn-icon:hover {
-  opacity: 1;
+  transform: scale(1.1);
 }
 
 /* Features Section */

@@ -274,7 +274,7 @@ const AdminDashboard = () => {
         {/* System Stats */}
         <div className="stats-grid">
           <div className="stat-card stat-users">
-            <div className="stat-icon">👤</div>
+            <div className="stat-icon">👥</div>
             <div className="stat-content">
               <h3>Total Users</h3>
               <p className="stat-number text-gradient">{stats?.users.total || 0}</p>
@@ -305,7 +305,7 @@ const AdminDashboard = () => {
           </div>
 
           <div className="stat-card stat-logs">
-            <div className="stat-icon">📊</div>
+            <div className="stat-icon">📈</div>
             <div className="stat-content">
               <h3>System Events</h3>
               <p className="stat-number">{auditLogs.length}</p>
@@ -376,10 +376,10 @@ const AdminDashboard = () => {
                     <td><span className={`status-badge status-${u.accountStatus}`}>{u.accountStatus}</span></td>
                     <td>{formatDate(u.lastLogin)}</td>
                     <td>
-                      <button className="btn-icon" title={u.accountStatus === 'active' ? 'Lock' : 'Unlock'} onClick={() => handleToggleLock(u._id)}>
-                        {u.accountStatus === 'active' ? 'Lock' : 'Unlock'}
+                      <button className="btn-table-action" title={u.accountStatus === 'active' ? 'Lock' : 'Unlock'} onClick={() => handleToggleLock(u._id)}>
+                        {u.accountStatus === 'active' ? '🔒' : '🔓'}
                       </button>
-                      <button className="btn-icon" title="Delete" onClick={() => handleDeleteUser(u._id)}>Del</button>
+                      <button className="btn-table-action danger" title="Delete" onClick={() => handleDeleteUser(u._id)}>🗑️</button>
                     </td>
                   </tr>
                 ))}

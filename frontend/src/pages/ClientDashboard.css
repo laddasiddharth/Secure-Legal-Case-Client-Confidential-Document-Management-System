@@ -135,11 +135,26 @@
 }
 
 .stat-icon {
-  font-size: 2.2rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
+  font-size: 1.5rem;
+  width: 54px;
+  height: 54px;
+  background: rgba(212, 165, 116, 0.08);
+  border: 1px solid rgba(212, 165, 116, 0.2);
+  color: var(--secondary-color);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  box-shadow: inset 0 0 10px rgba(212, 165, 116, 0.05);
+  transition: all var(--transition-base);
+}
+
+.stat-card:hover .stat-icon {
+  background: var(--secondary-color);
+  color: var(--primary-dark);
+  border-color: var(--secondary-color);
+  transform: scale(1.1) rotate(-5deg);
 }
 
 .stat-content h3 {
@@ -448,8 +463,28 @@
 }
 
 .security-icon {
-  font-size: 3rem;
+  font-size: 1.75rem;
+  width: 64px;
+  height: 64px;
+  background: rgba(212, 165, 116, 0.05);
+  border: 1px solid rgba(212, 165, 116, 0.2);
+  color: var(--secondary-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: var(--spacing-md);
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.4s ease;
+}
+
+.security-item:hover .security-icon {
+  background: var(--grad-premium);
+  color: var(--primary-dark);
+  transform: scale(1.1) translateY(-5px);
+  box-shadow: 0 10px 25px rgba(212, 165, 116, 0.3);
 }
 
 .security-item h3 {
@@ -612,4 +647,32 @@
   .documents-table {
     overflow-x: auto;
   }
+}
+
+.btn-table-action {
+  background: rgba(212, 165, 116, 0.05);
+  border: 1px solid rgba(212, 165, 116, 0.2);
+  color: var(--secondary-color);
+  padding: 0.4rem;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  height: 38px;
+}
+
+.btn-table-action:hover:not(:disabled) {
+  background: rgba(212, 165, 116, 0.15);
+  border-color: var(--secondary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-table-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

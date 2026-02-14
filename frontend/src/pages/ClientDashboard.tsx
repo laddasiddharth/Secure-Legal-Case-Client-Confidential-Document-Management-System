@@ -226,7 +226,7 @@ const ClientDashboard = () => {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon">⏳</div>
+            <div className="stat-icon">🕒</div>
             <div className="stat-content">
               <h3>Active Cases</h3>
               <p className="stat-number text-gradient">{stats.active}</p>
@@ -235,7 +235,7 @@ const ClientDashboard = () => {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon">✓</div>
+            <div className="stat-icon">✅</div>
             <div className="stat-content">
               <h3>Closed Cases</h3>
               <p className="stat-number text-gradient">{stats.closed}</p>
@@ -244,7 +244,7 @@ const ClientDashboard = () => {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon">📋</div>
+            <div className="stat-icon">📄</div>
             <div className="stat-content">
               <h3>Documents</h3>
               <p className="stat-number text-gradient">
@@ -436,11 +436,12 @@ const ClientDashboard = () => {
                           <td>{formatRelativeTime(doc.uploadedAt)}</td>
                           <td>
                             <button
-                              className="btn btn-sm btn-primary"
+                              className="btn-table-action"
+                              title="Download Document"
                               onClick={() => handleDownloadDocument(doc)}
                               disabled={downloading === doc._id}
                             >
-                              {downloading === doc._id ? 'Downloading...' : 'Download'}
+                              {downloading === doc._id ? '⌛' : '📥'}
                             </button>
                           </td>
                         </tr>
