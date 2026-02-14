@@ -79,7 +79,6 @@ The project follows a modern monorepo structure with separated `frontend` and `b
 
 - `frontend/`: React + Vite application source.
 - `backend/`: Node.js + Express API source.
-- `docs/`: Phase-wise implementation documentation and status reports.
 - `node_modules/`: Global and local dependencies.
 
 ### **3. Repository Setup**
@@ -110,7 +109,7 @@ FRONTEND_URL=http://localhost:8080
 From the **root folder**, execute:
 
 ```bash
-npm run dev:all
+npm run dev
 ```
 
 - **Frontend**: `http://localhost:8080`
