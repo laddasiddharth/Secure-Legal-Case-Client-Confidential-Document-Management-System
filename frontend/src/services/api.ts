@@ -1,60 +1,120 @@
-// API Base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+// API Base URL - Use environment variable with fallback
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_TIMEOUT = 30000; // 30 seconds
 
 // Get auth token from localStorage
-const getAuthToken = () => {
-  return localStorage.getItem('token');
+const getAuthToken = (): string | null => {
+  try {
+    return localStorage.getItem("token");
+  } catch (error) {
+    console.error("Error accessing localStorage:", error);
+    return null;
+  }
 };
 
-// Get user data from localStorage
+// Get user data from localStorage with validation
 export const getCurrentUser = () => {
-  const userStr = localStorage.getItem('user');
-  return userStr ? JSON.parse(userStr) : null;
+  try {
+    const userStr = localStorage.getItem("user");
+    if (!userStr) return null;
+
+    const user = JSON.parse(userStr);
+
+    // Validate user object has required fields
+    if (!user || !user.role || !user.email) {
+      console.warn("Invalid user data in localStorage");
+      localStorage.removeItem("user");
+      return null;
+    }
+
+    return user;
+  } catch (error) {
+    console.error("Error parsing user data:", error);
+    localStorage.removeItem("user");
+    return null;
+  }
 };
 
-// API request wrapper with authentication
+// Create abort controller for timeout
+const createTimeoutController = (timeoutMs: number = API_TIMEOUT) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  return { controller, timeoutId };
+};
+
+// API request wrapper with authentication and timeout
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   const token = getAuthToken();
-  
+
   const headers: Record<string, string> = {
-    ...(options.headers as Record<string, string> || {}),
+    ...((options.headers as Record<string, string>) || {}),
   };
 
   // Add auth token if available
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   // Add Content-Type for JSON requests (unless it's FormData)
   if (!(options.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json';
+    headers["Content-Type"] = "application/json";
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  // Setup timeout
+  const { controller, timeoutId } = createTimeoutController();
 
-  // Handle unauthorized
-  if (response.status === 401) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
-    throw new Error('Unauthorized');
+  try {
+    const response = await fetch(`${API_BASE_URL}/api${endpoint}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    // Handle unauthorized
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+      throw new Error("Session expired. Please login again.");
+    }
+
+    // Handle forbidden
+    if (response.status === 403) {
+      throw new Error(
+        "Access denied. You do not have permission to perform this action.",
+      );
+    }
+
+    // Handle server errors
+    if (response.status >= 500) {
+      throw new Error("Server error. Please try again later.");
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Request failed");
+    }
+
+    return data;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+
+    // Handle network errors
+    if (error.name === "AbortError") {
+      throw new Error(
+        "Request timeout. Please check your connection and try again.",
+      );
+    }
+
+    if (error.message === "Failed to fetch") {
+      throw new Error("Network error. Please check your internet connection.");
+    }
+
+    throw error;
   }
-
-  // Handle forbidden
-  if (response.status === 403) {
-    throw new Error('Access denied');
-  }
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || 'Request failed');
-  }
-
-  return data;
 };
 
 // ==================== CASE APIs ====================
@@ -62,7 +122,7 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
 export const caseAPI = {
   // Get all cases (role-filtered)
   getAll: async () => {
-    return apiRequest('/cases');
+    return apiRequest("/cases");
   },
 
   // Get single case
@@ -78,8 +138,8 @@ export const caseAPI = {
     clientId: string;
     priority?: string;
   }) => {
-    return apiRequest('/cases', {
-      method: 'POST',
+    return apiRequest("/cases", {
+      method: "POST",
       body: JSON.stringify(caseData),
     });
   },
@@ -87,7 +147,7 @@ export const caseAPI = {
   // Update case
   update: async (id: string, updates: any) => {
     return apiRequest(`/cases/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(updates),
     });
   },
@@ -95,18 +155,18 @@ export const caseAPI = {
   // Delete case
   delete: async (id: string) => {
     return apiRequest(`/cases/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   },
 
   // Get statistics
   getStats: async () => {
-    return apiRequest('/cases/stats/summary');
+    return apiRequest("/cases/stats/summary");
   },
 
   // Get all clients (for lawyers)
   getClients: async () => {
-    return apiRequest('/cases/clients/list');
+    return apiRequest("/cases/clients/list");
   },
 
   // Get case QR code
@@ -120,8 +180,8 @@ export const caseAPI = {
 export const documentAPI = {
   // Upload document
   upload: async (formData: FormData) => {
-    return apiRequest('/documents/upload', {
-      method: 'POST',
+    return apiRequest("/documents/upload", {
+      method: "POST",
       body: formData,
     });
   },
@@ -134,15 +194,15 @@ export const documentAPI = {
   // Download document
   download: async (id: string) => {
     const token = getAuthToken();
-    const response = await fetch(`${API_BASE_URL}/documents/${id}/download`, {
+    const response = await fetch(`${API_BASE_URL}/api/documents/${id}/download`, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Download failed');
+      throw new Error(error.message || "Download failed");
     }
 
     return response.blob();
@@ -151,14 +211,14 @@ export const documentAPI = {
   // Delete document
   delete: async (id: string) => {
     return apiRequest(`/documents/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   },
 
   // Sign document
   sign: async (id: string) => {
     return apiRequest(`/documents/${id}/sign`, {
-      method: 'PATCH',
+      method: "PATCH",
     });
   },
 };
@@ -168,7 +228,7 @@ export const documentAPI = {
 export const adminAPI = {
   // Get all users
   getUsers: async () => {
-    return apiRequest('/admin/users');
+    return apiRequest("/admin/users");
   },
 
   // Get single user
@@ -185,8 +245,8 @@ export const adminAPI = {
     fullName: string;
     phoneNumber?: string;
   }) => {
-    return apiRequest('/admin/users', {
-      method: 'POST',
+    return apiRequest("/admin/users", {
+      method: "POST",
       body: JSON.stringify(userData),
     });
   },
@@ -194,7 +254,7 @@ export const adminAPI = {
   // Update user
   updateUser: async (id: string, updates: any) => {
     return apiRequest(`/admin/users/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(updates),
     });
   },
@@ -202,32 +262,37 @@ export const adminAPI = {
   // Lock/Unlock user
   toggleLock: async (id: string) => {
     return apiRequest(`/admin/users/${id}/lock`, {
-      method: 'PUT',
+      method: "PUT",
     });
   },
 
   // Delete user
   deleteUser: async (id: string) => {
     return apiRequest(`/admin/users/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   },
 
   // Get audit logs
-  getAuditLogs: async (params?: { page?: number; limit?: number; userId?: string; action?: string }) => {
+  getAuditLogs: async (params?: {
+    page?: number;
+    limit?: number;
+    userId?: string;
+    action?: string;
+  }) => {
     const queryParams = new URLSearchParams();
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.userId) queryParams.append('userId', params.userId);
-    if (params?.action) queryParams.append('action', params.action);
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.userId) queryParams.append("userId", params.userId);
+    if (params?.action) queryParams.append("action", params.action);
 
     const query = queryParams.toString();
-    return apiRequest(`/admin/audit-logs${query ? `?${query}` : ''}`);
+    return apiRequest(`/admin/audit-logs${query ? `?${query}` : ""}`);
   },
 
   // Get system statistics
   getStats: async () => {
-    return apiRequest('/admin/stats');
+    return apiRequest("/admin/stats");
   },
 };
 
@@ -243,35 +308,35 @@ export const authAPI = {
     fullName: string;
     phoneNumber?: string;
   }) => {
-    return apiRequest('/auth/register', {
-      method: 'POST',
+    return apiRequest("/auth/register", {
+      method: "POST",
       body: JSON.stringify(userData),
     });
   },
 
   // Login
   login: async (email: string, password: string) => {
-    return apiRequest('/auth/login', {
-      method: 'POST',
+    return apiRequest("/auth/login", {
+      method: "POST",
       body: JSON.stringify({ email, password }),
     });
   },
 
   // Verify OTP
   verifyOTP: async (userId: string, otp: string) => {
-    return apiRequest('/auth/verify-otp', {
-      method: 'POST',
+    return apiRequest("/auth/verify-otp", {
+      method: "POST",
       body: JSON.stringify({ userId, otp }),
     });
   },
 
   // Logout
   logout: async () => {
-    const response = await apiRequest('/auth/logout', {
-      method: 'POST',
+    const response = await apiRequest("/auth/logout", {
+      method: "POST",
     });
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     return response;
   },
 };
@@ -280,14 +345,14 @@ export const authAPI = {
 
 // Save auth data
 export const saveAuthData = (token: string, user: any) => {
-  localStorage.setItem('token', token);
-  localStorage.setItem('user', JSON.stringify(user));
+  localStorage.setItem("token", token);
+  localStorage.setItem("user", JSON.stringify(user));
 };
 
 // Clear auth data
 export const clearAuthData = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
 };
 
 // Check if user is authenticated
@@ -303,15 +368,15 @@ export const hasRole = (role: string) => {
 
 // Check if user is admin
 export const isAdmin = () => {
-  return hasRole('admin');
+  return hasRole("admin");
 };
 
 // Check if user is lawyer
 export const isLawyer = () => {
-  return hasRole('lawyer');
+  return hasRole("lawyer");
 };
 
 // Check if user is client
 export const isClient = () => {
-  return hasRole('client');
+  return hasRole("client");
 };

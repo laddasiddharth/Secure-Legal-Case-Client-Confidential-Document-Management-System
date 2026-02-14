@@ -9,7 +9,6 @@ const LandingPage = () => {
         <div className="container">
           <div className="nav-content">
             <div className="nav-brand">
-              <span className="nav-icon">🔐</span>
               <span className="nav-title text-gradient">Legal Docs</span>
             </div>
             <div className="nav-links">
@@ -32,12 +31,20 @@ const LandingPage = () => {
         <div className="container">
           <div className="hero-content">
             <h1 className="hero-title text-gradient">
-              🔐 Secure Legal Document Management
+              Secure Legal Document Management
             </h1>       
             <p className="hero-description">
               A production-grade system designed for law firms and courts to handle 
               extremely sensitive legal data with the highest security standards.
             </p>
+            <div className="hero-buttons">
+              <Link to="/register" className="btn btn-primary">
+                Get Started Free
+              </Link>
+              <Link to="/security-demo" className="btn btn-outline">
+                View Security Demo
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -45,7 +52,7 @@ const LandingPage = () => {
       {/* Features Section */}
       <section className="features">
         <div className="container">
-          <h2 className="section-title">🛡️ Comprehensive Security Architecture</h2>
+          <h2 className="section-title">Comprehensive Security Architecture</h2>
           <div className="features-grid">
             <div className="feature-card">
               <div className="feature-icon">🔑</div>
@@ -60,7 +67,7 @@ const LandingPage = () => {
             </div>
 
             <div className="feature-card">
-              <div className="feature-icon">🔒</div>
+              <div className="feature-icon">🛡️</div>
               <h3>Hybrid Encryption</h3>
               <p>RSA-2048 + AES-256-GCM for document security</p>
             </div>
@@ -89,10 +96,10 @@ const LandingPage = () => {
       {/* Roles Section */}
       <section className="roles">
         <div className="container">
-          <h2 className="section-title">👥 User Roles</h2>
+          <h2 className="section-title">User Roles</h2>
           <div className="roles-grid">
             <div className="role-card glass">
-              <h3>⚖️ Lawyer</h3>
+              <h3>Lawyer</h3>
               <ul>
                 <li>Create and manage cases</li>
                 <li>Upload evidence documents</li>
@@ -102,7 +109,7 @@ const LandingPage = () => {
             </div>
 
             <div className="role-card glass">
-              <h3>👤 Client</h3>
+              <h3>Client</h3>
               <ul>
                 <li>View assigned cases</li>
                 <li>Read case documents</li>
@@ -112,7 +119,7 @@ const LandingPage = () => {
             </div>
 
             <div className="role-card glass">
-              <h3>🛡️ Court Admin</h3>
+              <h3>Court Admin</h3>
               <ul>
                 <li>Full system access</li>
                 <li>User management</li>

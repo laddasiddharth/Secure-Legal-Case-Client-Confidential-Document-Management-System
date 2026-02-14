@@ -39,7 +39,6 @@
   font-size: 3.5rem;
   margin-bottom: var(--spacing-md);
   color: var(--text-primary);
-  animation: fadeInUp 0.6s ease-out;
   position: relative;
   display: inline-block;
   left: 50%;
@@ -63,7 +62,6 @@
   font-size: 1.35rem;
   color: var(--text-secondary);
   margin-bottom: var(--spacing-3xl);
-  animation: fadeInUp 0.6s ease-out 0.2s backwards;
   font-style: italic;
 }
 
@@ -85,7 +83,6 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  animation: fadeInUp 0.6s ease-out backwards;
 }
 
 .demo-card:hover {
@@ -95,24 +92,7 @@
   transition: all var(--transition-base);
 }
 
-.demo-card:nth-child(1) {
-  animation-delay: 0.1s;
-}
-.demo-card:nth-child(2) {
-  animation-delay: 0.2s;
-}
-.demo-card:nth-child(3) {
-  animation-delay: 0.3s;
-}
-.demo-card:nth-child(4) {
-  animation-delay: 0.4s;
-}
-.demo-card:nth-child(5) {
-  animation-delay: 0.5s;
-}
-.demo-card:nth-child(6) {
-  animation-delay: 0.6s;
-}
+
 
 .demo-header {
   background: linear-gradient(

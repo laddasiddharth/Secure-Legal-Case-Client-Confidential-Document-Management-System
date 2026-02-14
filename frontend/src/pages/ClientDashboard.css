@@ -98,14 +98,14 @@
 }
 
 .welcome-section h2 {
-  font-size: 2rem;
+  font-size: 1.75rem;
   margin-bottom: 0.5rem;
   color: var(--text-primary);
 }
 
 .welcome-section p {
   color: var(--text-secondary);
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 /* Stats Grid */
@@ -152,7 +152,7 @@
 }
 
 .stat-number {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--secondary-color);
   margin-bottom: 0.25rem;

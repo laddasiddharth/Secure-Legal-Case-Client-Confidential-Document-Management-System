@@ -1,5 +1,6 @@
 /* Import distinctive fonts */
 @import url("https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+@import "./styles/accessibility.css";
 
 :root {
   /* Dark Visual Color Palette - Dark, Sophisticated, Dramatic */
@@ -140,15 +141,15 @@ h6 {
 }
 
 h1 {
-  font-size: 3.5rem;
+  font-size: 2.75rem;
   font-weight: 700;
 }
 h2 {
-  font-size: 2.75rem;
+  font-size: 2.25rem;
   font-weight: 600;
 }
 h3 {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 600;
 }
 h4 {
@@ -167,7 +168,7 @@ h6 {
 p {
   margin-bottom: var(--spacing-md);
   color: var(--text-secondary);
-  font-size: 1.125rem;
+  font-size: 1rem;
 }
 
 a {
@@ -250,14 +251,14 @@ a:hover {
 /* Button Styles */
 .btn {
   display: inline-block;
-  padding: var(--spacing-md) var(--spacing-xl);
-  font-size: 1rem;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: 0.875rem;
   font-weight: 600;
   font-family: "JetBrains Mono", monospace;
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border: 2px solid;
+  border: 1.5px solid;
   border-radius: var(--radius-sm);
   cursor: pointer;
   text-decoration: none;

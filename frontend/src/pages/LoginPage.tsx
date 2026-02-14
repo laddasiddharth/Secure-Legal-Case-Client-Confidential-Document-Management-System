@@ -1,9 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { authAPI } from '../services/api';
+import { useToast } from '../hooks/useToast';
+import PasswordInput from '../components/PasswordInput';
+import { OTP_LENGTH, OTP_EXPIRY_MINUTES } from '../constants';
 import './AuthPages.css';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { success, error: showError, ToastContainer } = useToast();
+  
   const [step, setStep] = useState<'credentials' | 'otp'>('credentials');
   const [formData, setFormData] = useState({
     email: '',
@@ -12,43 +18,27 @@ const LoginPage = () => {
   const [otp, setOtp] = useState('');
   const [userId, setUserId] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
-    setError('');
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
+      const data = await authAPI.login(formData.email, formData.password);
+      
       setUserId(data.userId);
-      setSuccess('OTP sent to your email!');
+      success('OTP sent to your email!');
       setStep('otp');
 
     } catch (err: any) {
-      setError(err.message || 'Failed to login');
+      showError(err.message || 'Failed to login');
     } finally {
       setLoading(false);
     }
@@ -57,28 +47,15 @@ const LoginPage = () => {
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/verify-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ userId, otp })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'OTP verification failed');
-      }
+      const data = await authAPI.verifyOTP(userId, otp);
 
       // Store token and user data
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      setSuccess('Login successful! Redirecting...');
+      success('Login successful! Redirecting...');
       
       // Redirect to dashboard
       setTimeout(() => {
@@ -86,7 +63,7 @@ const LoginPage = () => {
       }, 1000);
 
     } catch (err: any) {
-      setError(err.message || 'Failed to verify OTP');
+      showError(err.message || 'Failed to verify OTP');
     } finally {
       setLoading(false);
     }
@@ -94,24 +71,14 @@ const LoginPage = () => {
 
   return (
     <div className="auth-page">
+      <ToastContainer />
+      
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-header">
-            <h1 className="text-gradient">🔐 Login</h1>
+            <h1 className="text-gradient">Login</h1>
             <p>Access your secure legal documents</p>
           </div>
-
-          {error && (
-            <div className="alert alert-error">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="alert alert-success">
-              {success}
-            </div>
-          )}
 
           {step === 'credentials' ? (
             <form className="auth-form" onSubmit={handleLogin}>
@@ -126,20 +93,19 @@ const LoginPage = () => {
                   onChange={handleChange}
                   required
                   placeholder="lawyer@example.com"
+                  autoComplete="email"
                 />
               </div>
 
               <div className="form-group">
                 <label className="form-label" htmlFor="password">Password</label>
-                <input
-                  type="password"
+                <PasswordInput
                   id="password"
                   name="password"
-                  className="form-input"
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  placeholder="Enter your password"
+                  autoComplete="current-password"
                 />
               </div>
 
@@ -161,14 +127,12 @@ const LoginPage = () => {
                   name="otp"
                   className="form-input"
                   value={otp}
-                  onChange={(e) => {
-                    setOtp(e.target.value);
-                    setError('');
-                  }}
+                  onChange={(e) => setOtp(e.target.value)}
                   required
                   placeholder="000000"
-                  maxLength={6}
+                  maxLength={OTP_LENGTH}
                   pattern="[0-9]{6}"
+                  autoComplete="one-time-code"
                   style={{ 
                     fontSize: '1.5rem', 
                     textAlign: 'center', 
@@ -182,7 +146,7 @@ const LoginPage = () => {
                   marginTop: '0.5rem',
                   fontFamily: 'JetBrains Mono, monospace'
                 }}>
-                  Check your email for the 6-digit OTP (expires in 5 minutes)
+                  Check your email for the {OTP_LENGTH}-digit OTP (expires in {OTP_EXPIRY_MINUTES} minutes)
                 </p>
               </div>
 
@@ -200,8 +164,6 @@ const LoginPage = () => {
                 onClick={() => {
                   setStep('credentials');
                   setOtp('');
-                  setError('');
-                  setSuccess('');
                 }}
                 style={{ marginTop: '1rem' }}
               >
@@ -216,7 +178,7 @@ const LoginPage = () => {
           </div>
 
           <div className="auth-info">
-            <h3>🔒 Security Features</h3>
+            <h3>Security Features</h3>
             <p>• Multi-Factor Authentication (MFA)</p>
             <p>• Email OTP verification</p>
             <p>• Account lockout after 5 failed attempts</p>

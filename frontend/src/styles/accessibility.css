@@ -1,0 +1,302 @@
+/* Accessibility Improvements */
+
+/* Focus Visible - Only show focus for keyboard navigation */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip to main content link */
+.skip-to-main {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--primary-color);
+  color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 10000;
+  border-radius: 0 0 4px 0;
+}
+
+.skip-to-main:focus {
+  top: 0;
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only-focusable:active,
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border-color: #000;
+    --text-primary: #000;
+    --text-secondary: #333;
+  }
+
+  button,
+  .btn {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Keyboard navigation improvements */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Improve button accessibility */
+button:disabled,
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+button[aria-pressed="true"] {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Icon buttons should have aria-label */
+.btn-icon:not([aria-label]):not([aria-labelledby])::after {
+  content: "⚠️ Missing aria-label";
+  position: absolute;
+  background: red;
+  color: white;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  top: -20px;
+  left: 0;
+  white-space: nowrap;
+  display: none;
+}
+
+/* Show warning in development */
+[data-env="development"] .btn-icon:not([aria-label]):not([aria-labelledby])::after {
+  display: block;
+}
+
+/* Form labels */
+label {
+  cursor: pointer;
+}
+
+label[for]:hover {
+  color: var(--primary-color);
+}
+
+/* Required field indicator */
+input:required + label::after,
+select:required + label::after,
+textarea:required + label::after {
+  content: " *";
+  color: var(--error-color);
+}
+
+/* Invalid field styling */
+input:invalid:not(:placeholder-shown),
+select:invalid:not(:placeholder-shown),
+textarea:invalid:not(:placeholder-shown) {
+  border-color: var(--error-color);
+}
+
+input:valid:not(:placeholder-shown),
+select:valid:not(:placeholder-shown),
+textarea:valid:not(:placeholder-shown) {
+  border-color: var(--success-color);
+}
+
+/* ARIA live regions */
+[aria-live="polite"],
+[aria-live="assertive"] {
+  position: relative;
+}
+
+
+
+
+
+.modal-overlay {
+  /* Prevent background interaction */
+  pointer-events: auto;
+}
+
+/* Table accessibility */
+table {
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  font-weight: 600;
+}
+
+
+
+th[scope="row"] {
+  /* Row headers */
+  font-weight: 600;
+}
+
+/* Link styling for accessibility */
+a {
+  text-decoration: underline;
+  text-decoration-skip-ink: auto;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Button vs link distinction */
+button,
+.btn {
+  cursor: pointer;
+  user-select: none;
+}
+
+a {
+  cursor: pointer;
+}
+
+/* Loading states should be announced */
+[aria-busy="true"] {
+  cursor: wait;
+}
+
+/* Disabled elements */
+[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Expanded/collapsed states */
+[aria-expanded="false"] .collapse-icon::before {
+  content: "▶";
+}
+
+[aria-expanded="true"] .collapse-icon::before {
+  content: "▼";
+}
+
+/* Selected state */
+[aria-selected="true"] {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Pressed state for toggle buttons */
+[aria-pressed="true"] {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Error messages */
+.error-message,
+[role="alert"] {
+  color: var(--error-color);
+  font-weight: 500;
+}
+
+/* Success messages */
+.success-message {
+  color: var(--success-color);
+  font-weight: 500;
+}
+
+/* Warning messages */
+.warning-message {
+  color: var(--warning-color);
+  font-weight: 500;
+}
+
+/* Tooltips */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 1000;
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:focus::after {
+  opacity: 1;
+}
+
+/* Color contrast helpers */
+.text-high-contrast {
+  color: #000;
+  font-weight: 600;
+}
+
+.bg-high-contrast {
+  background-color: #fff;
+  color: #000;
+}
+
+/* Landmark regions */
+main {
+  min-height: 50vh;
+}
+
+

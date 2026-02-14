@@ -78,7 +78,7 @@ const SecurityBlueprint = () => {
 
       <div className="demo-content">
         <div className="container">
-          <h1 className="demo-title text-gradient">🛡️ Security Blueprint</h1>
+          <h1 className="demo-title text-gradient">Security Blueprint</h1>
           <p className="demo-subtitle">
             Interactive visualization of our FIPS-compliant security infrastructure
           </p>

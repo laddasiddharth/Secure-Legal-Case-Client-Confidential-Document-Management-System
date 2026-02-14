@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminAPI, authAPI } from '../services/api';
 import Modal from '../components/Modal';
+import ConfirmDialog from '../components/ConfirmDialog';
+import { useToast } from '../hooks/useToast';
 import './AdminDashboard.css';
 
 interface User {
@@ -50,13 +52,30 @@ const AdminDashboard = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  
+  const { success, error: showError, ToastContainer } = useToast();
   
   // Modal states
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState(false);
   const [showHealthModal, setShowHealthModal] = useState(false);
   const [showSecurityModal, setShowSecurityModal] = useState(false);
+  
+  // Confirm Dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant: 'danger' | 'warning' | 'info';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    variant: 'warning'
+  });
+
   const [fullAuditLogs, setFullAuditLogs] = useState<AuditLog[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -109,10 +128,9 @@ const AdminDashboard = () => {
       setUsers(usersRes.users || []);
       setStats(statsRes.stats);
       setAuditLogs(logsRes.logs || []);
-      setError('');
     } catch (err: any) {
       console.error('Error fetching admin data:', err);
-      setError(err.message || 'Failed to load system data');
+      showError(err.message || 'Failed to load system data');
     }
   };
 
@@ -124,6 +142,7 @@ const AdminDashboard = () => {
       setFullAuditLogs(res.logs || []);
     } catch (err: any) {
       console.error('Error fetching logs:', err);
+      showError('Failed to fetch logs');
     } finally {
       setLoadingLogs(false);
     }
@@ -148,36 +167,55 @@ const AdminDashboard = () => {
       
       // Refresh data
       await fetchData();
-      alert('User created successfully!');
+      success('User created successfully!');
     } catch (err: any) {
-      setError(err.message || 'Failed to create user');
+      showError(err.message || 'Failed to create user');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleToggleLock = async (userId: string) => {
-    if (!window.confirm('Are you sure you want to change this user\'s account status?')) return;
-    try {
-      await adminAPI.toggleLock(userId);
-      await fetchData();
-    } catch (err: any) {
-      alert(err.message || 'Failed to toggle account lock');
-    }
+  const handleToggleLock = (userId: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Change Account Status',
+      message: 'Are you sure you want to change this user\'s account status?',
+      variant: 'warning',
+      onConfirm: async () => {
+        try {
+          await adminAPI.toggleLock(userId);
+          await fetchData();
+          success('User status updated successfully');
+        } catch (err: any) {
+          showError(err.message || 'Failed to toggle account lock');
+        }
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+      }
+    });
   };
 
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteUser = (userId: string) => {
     if (userId === user.id) {
-      alert('You cannot delete your own account!');
+      showError('You cannot delete your own account!');
       return;
     }
-    if (!window.confirm('WARNING: Are you sure you want to delete this user? This action cannot be undone.')) return;
-    try {
-      await adminAPI.deleteUser(userId);
-      await fetchData();
-    } catch (err: any) {
-      alert(err.message || 'Failed to delete user');
-    }
+    
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete User',
+      message: 'WARNING: Are you sure you want to delete this user? This action cannot be undone.',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await adminAPI.deleteUser(userId);
+          await fetchData();
+          success('User deleted successfully');
+        } catch (err: any) {
+          showError(err.message || 'Failed to delete user');
+        }
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+      }
+    });
   };
 
   const handleLogout = async () => {
@@ -211,7 +249,7 @@ const AdminDashboard = () => {
       <header className="dashboard-header">
         <div className="header-content">
           <div className="header-left">
-            <h1 className="text-gradient">🔧 Admin Portal</h1>
+            <h1 className="text-gradient">Admin Portal</h1>
             <p className="header-subtitle">System Management & Control</p>
           </div>
           <div className="header-right">
@@ -226,16 +264,7 @@ const AdminDashboard = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <div className="dashboard-container">
-        {/* Error Alert */}
-        {error && (
-          <div className="alert alert-error" style={{ marginBottom: '20px' }}>
-            {error}
-            <button onClick={() => setError('')}>✕</button>
-          </div>
-        )}
-
         {/* Welcome Section */}
         <section className="welcome-section">
           <h2 className="text-gradient">System Administration</h2>
@@ -245,7 +274,7 @@ const AdminDashboard = () => {
         {/* System Stats */}
         <div className="stats-grid">
           <div className="stat-card stat-users">
-            <div className="stat-icon">👥</div>
+            <div className="stat-icon">👤</div>
             <div className="stat-content">
               <h3>Total Users</h3>
               <p className="stat-number text-gradient">{stats?.users.total || 0}</p>
@@ -256,7 +285,7 @@ const AdminDashboard = () => {
           </div>
 
           <div className="stat-card stat-cases">
-            <div className="stat-icon">📁</div>
+            <div className="stat-icon">📂</div>
             <div className="stat-content">
               <h3>Total Cases</h3>
               <p className="stat-number text-gradient">{stats?.cases.total || 0}</p>
@@ -290,25 +319,25 @@ const AdminDashboard = () => {
           <h2>Quick Actions</h2>
           <div className="actions-grid">
             <button className="action-card" onClick={() => setShowAddUserModal(true)}>
-              <div className="action-icon">➕</div>
+              <div className="action-icon">👤+</div>
               <h3>Add User</h3>
               <p>Create new user account</p>
             </button>
 
             <button className="action-card" onClick={handleViewAllLogs}>
-              <div className="action-icon">📊</div>
+              <div className="action-icon">📋</div>
               <h3>View All Logs</h3>
               <p>Full system activity logs</p>
             </button>
 
             <button className="action-card" onClick={() => setShowHealthModal(true)}>
-              <div className="action-icon">⚖️</div>
+              <div className="action-icon">🩺</div>
               <h3>System Health</h3>
               <p>Database & Server status</p>
             </button>
 
             <button className="action-card" onClick={() => setShowSecurityModal(true)}>
-              <div className="action-icon">🔒</div>
+              <div className="action-icon">🛡️</div>
               <h3>Security Report</h3>
               <p>View security status</p>
             </button>
@@ -348,9 +377,9 @@ const AdminDashboard = () => {
                     <td>{formatDate(u.lastLogin)}</td>
                     <td>
                       <button className="btn-icon" title={u.accountStatus === 'active' ? 'Lock' : 'Unlock'} onClick={() => handleToggleLock(u._id)}>
-                        {u.accountStatus === 'active' ? '🔒' : '🔓'}
+                        {u.accountStatus === 'active' ? 'Lock' : 'Unlock'}
                       </button>
-                      <button className="btn-icon" title="Delete" onClick={() => handleDeleteUser(u._id)}>🗑️</button>
+                      <button className="btn-icon" title="Delete" onClick={() => handleDeleteUser(u._id)}>Del</button>
                     </td>
                   </tr>
                 ))}
@@ -369,7 +398,7 @@ const AdminDashboard = () => {
               auditLogs.map((log) => (
                 <div key={log._id} className="activity-item">
                   <div className={`activity-icon activity-${log.action.includes('FAILED') || log.action.includes('DENIED') ? 'warning' : 'success'}`}>
-                    {log.action.includes('USER') ? '👤' : log.action.includes('CASE') ? '📁' : log.action.includes('DOC') ? '📄' : '✅'}
+                    {log.action.includes('USER') ? '👤' : log.action.includes('CASE') ? '📂' : log.action.includes('DOC') ? '📄' : '✓'}
                   </div>
                   <div className="activity-content">
                     <h4>{log.action.replace(/_/g, ' ')}</h4>
@@ -590,6 +619,17 @@ const AdminDashboard = () => {
           </div>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+        variant={confirmDialog.variant}
+      />
+      
+      <ToastContainer />
     </div>
   );
 };

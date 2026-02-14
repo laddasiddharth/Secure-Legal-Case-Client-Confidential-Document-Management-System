@@ -73,8 +73,16 @@ The project follows a modern monorepo structure with separated `frontend` and `b
 - Node.js (v18.x or higher)
 - MongoDB Atlas Account (or local MongoDB)
 - SMTP Server (e.g., Gmail App Password) for MFA
+- OpenSSL (optional, for manual key generation)
 
-### **2. Repository Setup**
+### **2. Project Structure**
+
+- `frontend/`: React + Vite application source.
+- `backend/`: Node.js + Express API source.
+- `docs/`: Phase-wise implementation documentation and status reports.
+- `node_modules/`: Global and local dependencies.
+
+### **3. Repository Setup**
 
 ```bash
 git clone https://github.com/yourusername/secure-legal-dms.git

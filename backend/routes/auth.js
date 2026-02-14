@@ -31,7 +31,7 @@ const sendOTPEmail = async (email, otp) => {
     subject: "Your Login OTP - Secure Case Management",
     html: `
       <div style="font-family: 'Crimson Text', serif; max-width: 600px; margin: 0 auto; background: #1a1a1a; color: #e8e8e8; padding: 40px; border-radius: 8px;">
-        <h1 style="color: #d4a574; text-align: center; margin-bottom: 30px;">🔐 Secure Case Management</h1>
+        <h1 style="color: #d4a574; text-align: center; margin-bottom: 30px;">Secure Case Management</h1>
         <p style="font-size: 18px; line-height: 1.6;">Your One-Time Password (OTP) for login is:</p>
         <div style="background: #2d2d2d; padding: 20px; text-align: center; border-radius: 4px; margin: 30px 0;">
           <h2 style="color: #d4a574; font-family: 'JetBrains Mono', monospace; font-size: 36px; letter-spacing: 8px; margin: 0;">${otp}</h2>

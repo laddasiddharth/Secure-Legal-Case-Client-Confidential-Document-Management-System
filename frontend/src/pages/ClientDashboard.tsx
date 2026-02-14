@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { caseAPI, documentAPI, authAPI } from '../services/api';
+import { useToast } from '../hooks/useToast';
 import Modal from '../components/Modal';
+import LoadingSkeleton from '../components/LoadingSkeleton';
+import { formatRelativeTime, formatFileSize as formatSize, toTitleCase } from '../utils/formatters';
 import './ClientDashboard.css';
 
 interface Case {
@@ -47,6 +50,7 @@ interface Stats {
 
 const ClientDashboard = () => {
   const navigate = useNavigate();
+  const { success, error: showError, ToastContainer } = useToast();
   const [user, setUser] = useState<any>(null);
   
   const [cases, setCases] = useState<Case[]>([]);
@@ -55,7 +59,6 @@ const ClientDashboard = () => {
   const [caseDocuments, setCaseDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
-  const [error, setError] = useState('');
   const [downloading, setDownloading] = useState<string | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
 
@@ -97,11 +100,9 @@ const ClientDashboard = () => {
       
       setCases(casesRes.cases || []);
       setStats(statsRes.stats || { total: 0, active: 0, closed: 0, pending: 0 });
-      
-      setError('');
     } catch (err: any) {
       console.error('Error fetching data:', err);
-      setError(err.message || 'Failed to load dashboard data');
+      showError(err.message || 'Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -120,7 +121,7 @@ const ClientDashboard = () => {
       setQrCode(qrRes.qrCode);
     } catch (err: any) {
       console.error('Error fetching documents:', err);
-      setError(err.message || 'Failed to load documents');
+      showError(err.message || 'Failed to load documents');
     } finally {
       setLoadingDocuments(false);
     }
@@ -142,9 +143,10 @@ const ClientDashboard = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
+      success(`Downloaded: ${doc.fileName}`);
     } catch (err: any) {
       console.error('Error downloading document:', err);
-      alert(err.message || 'Failed to download document');
+      showError(err.message || 'Failed to download document');
     } finally {
       setDownloading(null);
     }
@@ -160,37 +162,36 @@ const ClientDashboard = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-  };
 
   if (loading) {
     return (
-      <div className="dashboard-loading">
-        <div className="loading-spinner"></div>
-        <p>Loading dashboard...</p>
+      <div className="client-dashboard-loading">
+        <header className="dashboard-header" style={{ opacity: 0.5 }}>
+          <div className="header-content">
+            <div className="header-left">
+              <h1 className="text-gradient">FOCYS Portal</h1>
+            </div>
+          </div>
+        </header>
+        <div className="dashboard-container">
+          <LoadingSkeleton type="stats" count={3} />
+          <div style={{ marginTop: '30px' }}>
+            <LoadingSkeleton type="card" count={2} />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="client-dashboard">
+      <ToastContainer />
       {/* Header */}
       <header className="dashboard-header">
         <div className="header-content">
           <div className="header-left">
-            <h1 className="text-gradient">👤 Client Portal</h1>
+            <h1 className="text-gradient">Client Portal</h1>
             <p className="header-subtitle">View Your Legal Cases</p>
           </div>
           <div className="header-right">
@@ -207,14 +208,6 @@ const ClientDashboard = () => {
 
       {/* Main Content */}
       <div className="dashboard-container">
-        {/* Error Alert */}
-        {error && (
-          <div className="alert alert-error" style={{ marginBottom: '20px' }}>
-            {error}
-            <button onClick={() => setError('')}>✕</button>
-          </div>
-        )}
-
         {/* Welcome Section */}
         <section className="welcome-section">
           <h2 className="text-gradient">Welcome, {user?.fullName}!</h2>
@@ -224,7 +217,7 @@ const ClientDashboard = () => {
         {/* Stats Cards */}
         <div className="stats-grid">
           <div className="stat-card">
-            <div className="stat-icon">📁</div>
+            <div className="stat-icon">📂</div>
             <div className="stat-content">
               <h3>Total Cases</h3>
               <p className="stat-number text-gradient">{stats.total}</p>
@@ -242,7 +235,7 @@ const ClientDashboard = () => {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon">✅</div>
+            <div className="stat-icon">✓</div>
             <div className="stat-content">
               <h3>Closed Cases</h3>
               <p className="stat-number text-gradient">{stats.closed}</p>
@@ -251,7 +244,7 @@ const ClientDashboard = () => {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon">📄</div>
+            <div className="stat-icon">📋</div>
             <div className="stat-content">
               <h3>Documents</h3>
               <p className="stat-number text-gradient">
@@ -287,12 +280,12 @@ const ClientDashboard = () => {
                   <div className="case-meta">
                     <div className="meta-item">
                       <span className="meta-label">Type:</span>
-                      <span className="meta-value">{caseItem.caseType}</span>
+                      <span className="meta-value">{toTitleCase(caseItem.caseType)}</span>
                     </div>
                     <div className="meta-item">
                       <span className="meta-label">Priority:</span>
                       <span className={`priority-badge priority-${caseItem.priority}`}>
-                        {caseItem.priority}
+                        {toTitleCase(caseItem.priority)}
                       </span>
                     </div>
                     <div className="meta-item">
@@ -305,7 +298,7 @@ const ClientDashboard = () => {
                     </div>
                     <div className="meta-item">
                       <span className="meta-label">Last Updated:</span>
-                      <span className="meta-value">{formatDate(caseItem.updatedAt)}</span>
+                      <span className="meta-value">{formatRelativeTime(caseItem.updatedAt)}</span>
                     </div>
                   </div>
                   
@@ -346,11 +339,11 @@ const ClientDashboard = () => {
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Type:</span>
-                  <span>{selectedCase?.caseType}</span>
+                  <span>{toTitleCase(selectedCase?.caseType || '')}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Created:</span>
-                  <span>{selectedCase ? formatDate(selectedCase.createdAt) : ''}</span>
+                  <span>{selectedCase ? formatRelativeTime(selectedCase.createdAt) : ''}</span>
                 </div>
               </div>
             </div>
@@ -409,9 +402,8 @@ const ClientDashboard = () => {
               <h3>Documents ({caseDocuments.length})</h3>
               
               {loadingDocuments ? (
-                <div style={{ textAlign: 'center', padding: '20px' }}>
-                  <div className="loading-spinner" style={{ margin: '0 auto' }}></div>
-                  <p>Loading documents...</p>
+                <div style={{ padding: '20px' }}>
+                  <LoadingSkeleton type="card" count={2} />
                 </div>
               ) : caseDocuments.length === 0 ? (
                 <p className="empty-message">No documents uploaded yet.</p>
@@ -440,15 +432,15 @@ const ClientDashboard = () => {
                               <span className="badge badge-warning" style={{fontSize: '0.6rem'}}>Unsigned</span>
                             )}
                           </td>
-                          <td>{formatFileSize(doc.fileSize)}</td>
-                          <td>{formatDate(doc.uploadedAt)}</td>
+                          <td>{formatSize(doc.fileSize)}</td>
+                          <td>{formatRelativeTime(doc.uploadedAt)}</td>
                           <td>
                             <button
                               className="btn btn-sm btn-primary"
                               onClick={() => handleDownloadDocument(doc)}
                               disabled={downloading === doc._id}
                             >
-                              {downloading === doc._id ? 'Downloading...' : '📥 Download'}
+                              {downloading === doc._id ? 'Downloading...' : 'Download'}
                             </button>
                           </td>
                         </tr>
@@ -463,25 +455,25 @@ const ClientDashboard = () => {
 
         {/* Security Info */}
         <section className="security-section">
-          <h2>🔒 Your Data Security</h2>
+          <h2>Your Data Security</h2>
           <div className="security-grid">
             <div className="security-item">
-              <div className="security-icon">🔐</div>
+              <div className="security-icon">🛡️</div>
               <h3>End-to-End Encryption</h3>
               <p>All documents are encrypted with AES-256-GCM</p>
             </div>
             <div className="security-item">
-              <div className="security-icon">✅</div>
+              <div className="security-icon">✓</div>
               <h3>Integrity Verification</h3>
               <p>SHA-256 hashing ensures file authenticity</p>
             </div>
             <div className="security-item">
-              <div className="security-icon">👁️</div>
+              <div className="security-icon">👁</div>
               <h3>Read-Only Access</h3>
               <p>View and download your case files securely</p>
             </div>
             <div className="security-item">
-              <div className="security-icon">📝</div>
+              <div className="security-icon">📋</div>
               <h3>Audit Trail</h3>
               <p>All access is logged for security</p>
             </div>
