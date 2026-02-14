@@ -61,6 +61,10 @@ const userSchema = new mongoose.Schema({
     enum: ['active', 'locked', 'suspended'],
     default: 'active'
   },
+  lockUntil: {
+    type: Date,
+    default: null
+  },
   lastLogin: {
     type: Date,
     default: null

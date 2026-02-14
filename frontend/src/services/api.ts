@@ -67,6 +67,7 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
     const response = await fetch(`${API_BASE_URL}/api${endpoint}`, {
       ...options,
       headers,
+      credentials: 'include',
       signal: controller.signal,
     });
 
@@ -198,6 +199,7 @@ export const documentAPI = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      credentials: 'include',
     });
 
     if (!response.ok) {

@@ -51,8 +51,7 @@ const LoginPage = () => {
     try {
       const data = await authAPI.verifyOTP(userId, otp);
 
-      // Store token and user data
-      localStorage.setItem('token', data.token);
+      // Store user data (Token is now in HttpOnly cookie)
       localStorage.setItem('user', JSON.stringify(data.user));
 
       success('Login successful! Redirecting...');
@@ -120,30 +119,53 @@ const LoginPage = () => {
           ) : (
             <form className="auth-form" onSubmit={handleVerifyOTP}>
               <div className="form-group">
-                <label className="form-label" htmlFor="otp">Enter OTP</label>
-                <input
-                  type="text"
-                  id="otp"
-                  name="otp"
-                  className="form-input"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  required
-                  placeholder="000000"
-                  maxLength={OTP_LENGTH}
-                  pattern="[0-9]{6}"
-                  autoComplete="one-time-code"
-                  style={{ 
-                    fontSize: '1.5rem', 
-                    textAlign: 'center', 
-                    letterSpacing: '0.5rem',
-                    fontFamily: 'JetBrains Mono, monospace'
-                  }}
-                />
+                <label className="form-label" style={{ textAlign: 'center', display: 'block' }}>Enter Verification Code</label>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '1rem' }}>
+                  {[0, 1, 2, 3, 4, 5].map((index) => (
+                    <input
+                      key={index}
+                      type="text"
+                      maxLength={1}
+                      className="form-input"
+                      style={{ 
+                        width: '45px', 
+                        height: '55px', 
+                        textAlign: 'center', 
+                        fontSize: '1.5rem',
+                        padding: '0',
+                        fontFamily: 'JetBrains Mono, monospace',
+                        backgroundColor: 'rgba(212, 165, 116, 0.05)',
+                        border: '1px solid rgba(212, 165, 116, 0.2)'
+                      }}
+                      value={otp[index] || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (!/^\d*$/.test(val)) return;
+                        
+                        const newOtp = otp.split('');
+                        newOtp[index] = val.slice(-1);
+                        const joined = newOtp.join('');
+                        setOtp(joined);
+                        
+                        if (val && index < 5) {
+                          const nextInput = e.target.nextElementSibling as HTMLInputElement;
+                          if (nextInput) nextInput.focus();
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Backspace' && !otp[index] && index > 0) {
+                          const prevInput = (e.target as HTMLInputElement).previousElementSibling as HTMLInputElement;
+                          if (prevInput) prevInput.focus();
+                        }
+                      }}
+                    />
+                  ))}
+                </div>
                 <p style={{ 
-                  fontSize: '0.9rem', 
+                  fontSize: '0.85rem', 
                   color: 'var(--text-secondary)', 
-                  marginTop: '0.5rem',
+                  marginTop: '1.5rem',
+                  textAlign: 'center',
                   fontFamily: 'JetBrains Mono, monospace'
                 }}>
                   Check your email for the {OTP_LENGTH}-digit OTP (expires in {OTP_EXPIRY_MINUTES} minutes)

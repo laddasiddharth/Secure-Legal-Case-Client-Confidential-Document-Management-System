@@ -7,58 +7,40 @@ const Case = require('../models/Case');
 const AuditLog = require('../models/AuditLog');
 const { authMiddleware, roleMiddleware } = require('../middleware/auth');
 
-// Configure multer for file upload (memory storage for encryption)
-const storage = multer.memoryStorage();
-const upload = multer({
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-  fileFilter: (req, file, cb) => {
-    // Allow common document types by extension
-    const allowedExtensions = /pdf|doc|docx|txt|jpg|jpeg|png/;
-    const extname = allowedExtensions.test(file.originalname.toLowerCase());
-    
-    // Allow common mimetypes
-    const allowedMimeTypes = /pdf|msword|wordprocessingml|text\/plain|image\/jpeg|image\/png/;
-    const mimetype = allowedMimeTypes.test(file.mimetype);
+const { pipeline } = require('stream');
+const { promisify } = require('util');
+const pipe = promisify(pipeline);
+const fs = require('fs');
+const path = require('path');
+const User = require('../models/User');
 
-    if (extname && mimetype) {
-      return cb(null, true);
-    }
-    cb(new Error('Invalid file type. Only PDF, DOC, DOCX, TXT, JPG, PNG allowed.'));
-  }
+// Configure multer for temp file upload
+const upload = multer({
+  dest: 'uploads/',
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
 });
 
-// AES-256-GCM Encryption
-function encryptFile(buffer, key) {
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-  
-  const encrypted = Buffer.concat([cipher.update(buffer), cipher.final()]);
-  const authTag = cipher.getAuthTag();
-  
-  return {
-    encrypted,
-    iv: iv.toString('hex'),
-    authTag: authTag.toString('hex')
-  };
+// RSA Key Wrapping
+function wrapKey(aesKey, publicKey) {
+  return crypto.publicEncrypt(
+    {
+      key: publicKey,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      oaepHash: "sha256",
+    },
+    aesKey
+  );
 }
 
-// AES-256-GCM Decryption
-function decryptFile(encryptedData, key, iv, authTag) {
-  const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(iv, 'hex'));
-  decipher.setAuthTag(Buffer.from(authTag, 'hex'));
-  
-  const decrypted = Buffer.concat([
-    decipher.update(encryptedData),
-    decipher.final()
-  ]);
-  
-  return decrypted;
-}
-
-// Generate SHA-256 hash
-function generateHash(buffer) {
-  return crypto.createHash('sha256').update(buffer).digest('hex');
+function unwrapKey(wrappedKey, privateKey) {
+  return crypto.privateDecrypt(
+    {
+      key: privateKey,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      oaepHash: "sha256",
+    },
+    wrappedKey
+  );
 }
 
 // @route   POST /api/documents/upload
@@ -76,7 +58,6 @@ router.post('/upload', authMiddleware, roleMiddleware('lawyer', 'admin'), upload
       return res.status(400).json({ message: 'Case ID is required' });
     }
 
-    // Verify case exists and user has access
     const caseData = await Case.findById(caseId);
     if (!caseData) {
       return res.status(404).json({ message: 'Case not found' });
@@ -86,16 +67,36 @@ router.post('/upload', authMiddleware, roleMiddleware('lawyer', 'admin'), upload
       return res.status(403).json({ message: 'Not authorized to upload to this case' });
     }
 
-    // Generate encryption key (in production, use key management service)
     const encryptionKey = crypto.randomBytes(32);
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv('aes-256-gcm', encryptionKey, iv);
 
-    // Encrypt file
-    const { encrypted, iv, authTag } = encryptFile(req.file.buffer, encryptionKey);
+    const tempPath = req.file.path;
+    const finalPath = path.join('uploads', `enc_${req.file.filename}`);
+    
+    // Create Hash stream to get file hash
+    const hash = crypto.createHash('sha256');
+    
+    const readStream = fs.createReadStream(tempPath);
+    const writeStream = fs.createWriteStream(finalPath);
 
-    // Generate hash of original file
-    const fileHash = generateHash(req.file.buffer);
+    // Pipe through encryption and hash
+    await new Promise((resolve, reject) => {
+      readStream.on('data', (chunk) => hash.update(chunk));
+      
+      pipeline(readStream, cipher, writeStream, (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
 
-    // Create document record
+    const fileHash = hash.digest('hex');
+    const authTag = cipher.getAuthTag().toString('hex');
+
+    // Key Wrapping with Lawyer's Public Key (from User model)
+    const uploadingUser = await User.findById(req.user._id);
+    const wrappedKey = wrapKey(encryptionKey, uploadingUser.publicKey);
+
     const document = new Document({
       caseId,
       uploadedBy: req.user._id,
@@ -104,50 +105,33 @@ router.post('/upload', authMiddleware, roleMiddleware('lawyer', 'admin'), upload
       fileSize: req.file.size,
       documentType: documentType || 'other',
       description,
-      encryptedData: encrypted.toString('base64'),
-      encryptionIV: iv,
+      filePath: finalPath,
+      encryptionIV: iv.toString('hex'),
       authTag,
-      encryptionKey: encryptionKey.toString('hex'), // In production, store in secure vault
+      encryptionKey: wrappedKey.toString('base64'), 
       fileHash,
       isEncrypted: true
     });
 
     await document.save();
+    
+    // Cleanup temp file
+    fs.unlinkSync(tempPath);
 
-    // Update case with document reference
     caseData.documents.push(document._id);
     await caseData.save();
 
-    // Log upload
-    await AuditLog.create({
-      userId: req.user._id,
-      action: 'DOCUMENT_UPLOADED',
-      resourceType: 'Document',
-      resourceId: document._id,
-      details: {
-        fileName: req.file.originalname,
-        caseId,
-        fileSize: req.file.size,
-        encrypted: true
-      },
-      ipAddress: req.ip,
-      userAgent: req.get('user-agent')
-    });
-
     res.status(201).json({
       success: true,
-      message: 'Document uploaded and encrypted successfully',
+      message: 'Document uploaded and encrypted securely',
       document: {
         id: document._id,
-        fileName: document.fileName,
-        fileType: document.fileType,
-        fileSize: document.fileSize,
-        fileHash: document.fileHash,
-        uploadedAt: document.uploadedAt
+        fileName: document.fileName
       }
     });
 
   } catch (error) {
+    if (req.file) fs.unlinkSync(req.file.path);
     console.error('Upload document error:', error);
     res.status(500).json({ message: 'Server error uploading document' });
   }
@@ -196,71 +180,40 @@ router.get('/case/:caseId', authMiddleware, async (req, res) => {
 router.get('/:id/download', authMiddleware, async (req, res) => {
   try {
     const document = await Document.findById(req.params.id).populate('caseId');
+    if (!document) return res.status(404).json({ message: 'Document not found' });
 
-    if (!document) {
-      return res.status(404).json({ message: 'Document not found' });
-    }
-
-    // Check authorization
     const caseData = await Case.findById(document.caseId);
     const isAuthorized = 
       req.user.role === 'admin' ||
       caseData.lawyerId.toString() === req.user._id.toString() ||
       caseData.clientId.toString() === req.user._id.toString();
 
-    if (!isAuthorized) {
-      await AuditLog.create({
-        userId: req.user._id,
-        action: 'UNAUTHORIZED_DOCUMENT_ACCESS',
-        resourceType: 'Document',
-        resourceId: document._id,
-        ipAddress: req.ip,
-        userAgent: req.get('user-agent')
-      });
-      return res.status(403).json({ message: 'Access denied to this document' });
-    }
+    if (!isAuthorized) return res.status(403).json({ message: 'Access denied' });
 
-    // Decrypt file
-    const encryptionKey = Buffer.from(document.encryptionKey, 'hex');
-    const encryptedBuffer = Buffer.from(document.encryptedData, 'base64');
-    
-    const decrypted = decryptFile(
-      encryptedBuffer,
-      encryptionKey,
-      document.encryptionIV,
-      document.authTag
+    // Key Unwrapping - Backend uses its copy of privateKey to unwrap
+    const keyUser = await User.findById(document.uploadedBy);
+    const encryptionKey = unwrapKey(
+      Buffer.from(document.encryptionKey, 'base64'),
+      keyUser.privateKey
     );
 
-    // Verify hash
-    const downloadHash = generateHash(decrypted);
-    if (downloadHash !== document.fileHash) {
-      await AuditLog.create({
-        userId: req.user._id,
-        action: 'DOCUMENT_INTEGRITY_FAILED',
-        resourceType: 'Document',
-        resourceId: document._id,
-        details: { reason: 'Hash mismatch' },
-        ipAddress: req.ip,
-        userAgent: req.get('user-agent')
-      });
-      return res.status(500).json({ message: 'Document integrity check failed' });
-    }
+    const decipher = crypto.createDecipheriv(
+      'aes-256-gcm', 
+      encryptionKey, 
+      Buffer.from(document.encryptionIV, 'hex')
+    );
+    decipher.setAuthTag(Buffer.from(document.authTag, 'hex'));
 
-    // Log download
-    await AuditLog.create({
-      userId: req.user._id,
-      action: 'DOCUMENT_DOWNLOADED',
-      resourceType: 'Document',
-      resourceId: document._id,
-      details: { fileName: document.fileName },
-      ipAddress: req.ip,
-      userAgent: req.get('user-agent')
-    });
-
-    // Send file
     res.setHeader('Content-Type', document.fileType);
     res.setHeader('Content-Disposition', `attachment; filename="${document.fileName}"`);
-    res.send(decrypted);
+
+    const readStream = fs.createReadStream(document.filePath);
+    pipeline(readStream, decipher, res, (err) => {
+      if (err) {
+        console.error('Streaming decryption failed:', err);
+        if (!res.headersSent) res.status(500).send('Decryption failed');
+      }
+    });
 
   } catch (error) {
     console.error('Download document error:', error);
@@ -320,44 +273,33 @@ router.delete('/:id', authMiddleware, roleMiddleware('lawyer', 'admin'), async (
 router.patch('/:id/sign', authMiddleware, roleMiddleware('lawyer'), async (req, res) => {
   try {
     const document = await Document.findById(req.params.id);
-    if (!document) {
-      return res.status(404).json({ message: 'Document not found' });
-    }
+    if (!document) return res.status(404).json({ message: 'Document not found' });
 
-    // Verify ownership/permission (only lawyer assigned to the case can sign)
     const caseData = await Case.findById(document.caseId);
     if (caseData.lawyerId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Unauthorized to sign this document' });
     }
 
-    if (document.isSigned) {
-      return res.status(400).json({ message: 'Document is already signed' });
-    }
+    if (document.isSigned) return res.status(400).json({ message: 'Document is already signed' });
 
-    // In a real system, we would use the user's private key to sign the file hash
-    // For this demo, we'll simulate the RSA signing process
+    // ACTUAL RSA-SHA256 DIGITAL SIGNATURE
+    const signer = await User.findById(req.user._id);
+    const signature = crypto.sign(
+      "sha256",
+      Buffer.from(document.fileHash, "hex"),
+      {
+        key: signer.privateKey,
+        padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+      }
+    );
+
     document.isSigned = true;
     document.signedBy = req.user._id;
     document.signedAt = new Date();
-    document.signature = crypto.randomBytes(64).toString('hex'); // Simulated RSA-PSS signature
+    document.signature = signature.toString('hex');
 
     await document.save();
-
-    await AuditLog.create({
-      userId: req.user._id,
-      action: 'DOCUMENT_SIGNED',
-      resourceType: 'Document',
-      resourceId: document._id,
-      details: { fileName: document.fileName, caseId: document.caseId },
-      ipAddress: req.ip,
-      userAgent: req.get('user-agent')
-    });
-
-    res.json({
-      success: true,
-      message: 'Document signed successfully',
-      document
-    });
+    res.json({ success: true, message: 'Document signed with RSA-PSS', document });
 
   } catch (error) {
     console.error('Sign document error:', error);

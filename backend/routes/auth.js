@@ -94,8 +94,10 @@ router.post("/register", async (req, res) => {
         .json({ message: "User already exists with this email or username" });
     }
 
-    // Generate RSA key pair for encryption
-    const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
+    // Generate RSA key pair for encryption (asynchronous to prevent event loop blocking)
+    const { promisify } = require("util");
+    const generateKeyPair = promisify(crypto.generateKeyPair);
+    const { publicKey, privateKey } = await generateKeyPair("rsa", {
       modulusLength: 2048,
       publicKeyEncoding: { type: "spki", format: "pem" },
       privateKeyEncoding: { type: "pkcs8", format: "pem" },
@@ -171,11 +173,17 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Check account status
+    // Check if account is locked by time
+    if (user.lockUntil && user.lockUntil > Date.now()) {
+      const remainingMinutes = Math.ceil((user.lockUntil - Date.now()) / (60 * 1000));
+      return res.status(403).json({ 
+        message: `Account is temporarily locked. Try again in ${remainingMinutes} minutes.` 
+      });
+    }
+
+    // Check permanent status
     if (user.accountStatus === "locked") {
-      return res
-        .status(403)
-        .json({ message: "Account is locked. Please contact administrator." });
+      return res.status(403).json({ message: "Account is permanently locked. Contact admin." });
     }
 
     // Verify password
@@ -186,22 +194,11 @@ router.post("/login", async (req, res) => {
 
       // Lock account after 5 failed attempts
       if (user.failedLoginAttempts >= 5) {
-        user.accountStatus = "locked";
+        user.lockUntil = Date.now() + 15 * 60 * 1000; // Lock for 15 minutes
+        user.failedLoginAttempts = 0; // Reset counter after locking
         await user.save();
-
-        await AuditLog.create({
-          userId: user._id,
-          action: "ACCOUNT_LOCKED",
-          resourceType: "User",
-          resourceId: user._id,
-          details: { reason: "Too many failed login attempts" },
-          ipAddress: req.ip,
-          userAgent: req.get("user-agent"),
-        });
-
-        return res
-          .status(403)
-          .json({ message: "Account locked due to too many failed attempts" });
+        
+        return res.status(403).json({ message: "Too many failed attempts. Account locked for 15 minutes." });
       }
 
       await user.save();
@@ -345,9 +342,16 @@ router.post("/verify-otp", async (req, res) => {
       userAgent: req.get("user-agent"),
     });
 
+    // Set HttpOnly Cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    });
+
     res.json({
       message: "Login successful",
-      token,
       user: {
         id: user._id,
         username: user.username,
@@ -384,6 +388,7 @@ router.post("/logout", async (req, res) => {
       });
     }
 
+    res.clearCookie("token");
     res.json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Logout error:", error);

@@ -33,7 +33,7 @@ const documentSchema = new mongoose.Schema({
     default: ''
   },
   // Encryption fields
-  encryptedData: {
+  filePath: {
     type: String,
     required: true
   },

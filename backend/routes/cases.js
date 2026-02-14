@@ -383,6 +383,12 @@ router.get("/:id/qr", authMiddleware, async (req, res) => {
       system: "Secure Legal Case & Client Confidential DMS",
     };
 
+    // Add cryptographic HMAC signature to prevent tampering
+    const secret = process.env.JWT_SECRET || 'fallback_secret_for_demo';
+    const hmac = crypto.createHmac('sha256', secret);
+    hmac.update(`${verificationData.caseNumber}|${verificationData.verifiedAt}`);
+    verificationData.signature = hmac.digest('hex');
+
     const qrDataString = JSON.stringify(verificationData);
     const qrCodeDataURL = await QRCode.toDataURL(qrDataString, {
       color: {

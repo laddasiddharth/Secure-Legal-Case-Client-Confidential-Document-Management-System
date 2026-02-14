@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { caseAPI, documentAPI, authAPI } from '../services/api';
 import Modal from '../components/Modal';
+import ConfirmDialog from '../components/ConfirmDialog';
 import './LawyerDashboard.css';
 
 interface Case {
@@ -92,6 +93,26 @@ const LawyerDashboard = () => {
   });
   
   const [submitting, setSubmitting] = useState(false);
+
+  // Pagination states
+  const [casePage, setCasePage] = useState(1);
+  const [clientPage, setClientPage] = useState(1);
+  const itemsPerPage = 5;
+
+  // Confirm dialog state
+  const [confirmConfig, setConfirmConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'warning' | 'info';
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'danger',
+    onConfirm: () => {}
+  });
 
   useEffect(() => {
     // Get user from localStorage
@@ -260,18 +281,25 @@ const LawyerDashboard = () => {
   };
 
   const handleDeleteDocument = async (docId: string) => {
-    if (!window.confirm('Are you sure you want to delete this document?')) return;
-    try {
-      await documentAPI.delete(docId);
-      // Refresh documents
-      if (selectedCaseForAction) {
-        const res = await documentAPI.getByCaseId(selectedCaseForAction._id);
-        setCaseDocuments(res.documents || []);
+    setConfirmConfig({
+      isOpen: true,
+      title: 'Delete Document',
+      message: 'Are you sure you want to delete this document? This action cannot be undone.',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await documentAPI.delete(docId);
+          if (selectedCaseForAction) {
+            const res = await documentAPI.getByCaseId(selectedCaseForAction._id);
+            setCaseDocuments(res.documents || []);
+          }
+          fetchData();
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+        } catch (err: any) {
+          alert(err.message || 'Failed to delete document');
+        }
       }
-      fetchData();
-    } catch (err: any) {
-      alert(err.message || 'Failed to delete document');
-    }
+    });
   };
 
   const handleUploadDocument = async (e: React.FormEvent) => {
@@ -286,15 +314,22 @@ const LawyerDashboard = () => {
       setSubmitting(true);
       setError('');
       
-      // Upload each file one by one
-      for (const file of uploadForm.files) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('caseId', selectedCaseForAction._id);
-        formData.append('documentType', uploadForm.documentType);
-        formData.append('description', uploadForm.description);
+      // Upload each file in parallel
+      // Upload files in batches to limit concurrency
+      const CONCURRENCY_LIMIT = 3;
+      const files = uploadForm.files;
+      
+      for (let i = 0; i < files.length; i += CONCURRENCY_LIMIT) {
+        const batch = files.slice(i, i + CONCURRENCY_LIMIT);
+        await Promise.all(batch.map(file => {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('caseId', selectedCaseForAction!._id);
+          formData.append('documentType', uploadForm.documentType);
+          formData.append('description', uploadForm.description);
 
-        await documentAPI.upload(formData);
+          return documentAPI.upload(formData);
+        }));
       }
 
       setShowUploadModal(false);
@@ -312,25 +347,28 @@ const LawyerDashboard = () => {
   };
 
   const handleSignDocument = async (docId: string) => {
-    if (!window.confirm('Are you sure you want to digitally sign this document? This action is permanent.')) return;
-    
-    try {
-      setLoadingDocs(true);
-      await documentAPI.sign(docId);
-      
-      // Refresh documents
-      if (selectedCaseForAction) {
-        const docsRes = await documentAPI.getByCaseId(selectedCaseForAction._id);
-        setCaseDocuments(docsRes.documents || []);
+    setConfirmConfig({
+      isOpen: true,
+      title: 'Digital Signature',
+      message: 'By signing this document, you are applying a cryptographic RSA-PSS signature. This action is legally binding in this system. Continue?',
+      type: 'warning',
+      onConfirm: async () => {
+        try {
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          setLoadingDocs(true);
+          await documentAPI.sign(docId);
+          if (selectedCaseForAction) {
+            const docsRes = await documentAPI.getByCaseId(selectedCaseForAction._id);
+            setCaseDocuments(docsRes.documents || []);
+          }
+          alert('Document signed successfully with RSA-PSS!');
+        } catch (err: any) {
+          alert(err.message || 'Failed to sign document');
+        } finally {
+          setLoadingDocs(false);
+        }
       }
-      
-      alert('Document signed successfully!');
-    } catch (err: any) {
-      console.error('Sign error:', err);
-      alert(err.message || 'Failed to sign document');
-    } finally {
-      setLoadingDocs(false);
-    }
+    });
   };
 
   const handleLogout = async () => {
@@ -884,32 +922,53 @@ const LawyerDashboard = () => {
           {cases.length === 0 ? (
             <p className="empty-message" style={{textAlign: 'center', padding: '40px'}}>No cases found.</p>
           ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Title</th>
-                  <th>Client</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cases.map((c) => (
-                  <tr key={c._id}>
-                    <td>{c.caseNumber}</td>
-                    <td>{c.title}</td>
-                    <td>{c.clientId?.fullName}</td>
-                    <td><span className={`status-badge status-${c.status}`}>{c.status}</span></td>
-                    <td>
-                      <button className="btn-table-action" title="Documents" onClick={() => { handleViewDocuments(c._id); setShowAllCasesModal(false); }}>📄</button>
-                      <button className="btn-table-action" title="QR Code" onClick={() => { handleViewQR(c); setShowAllCasesModal(false); }}>🔍</button>
-                      <button className="btn-table-action" title="Edit" onClick={() => { handleEditCase(c); setShowAllCasesModal(false); }}>✏️</button>
-                    </td>
+            <>
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {cases.slice((casePage - 1) * itemsPerPage, casePage * itemsPerPage).map((c) => (
+                    <tr key={c._id}>
+                      <td>{c.caseNumber}</td>
+                      <td>{c.title}</td>
+                      <td>{c.clientId?.fullName}</td>
+                      <td><span className={`status-badge status-${c.status}`}>{c.status}</span></td>
+                      <td>
+                        <button className="btn-table-action" title="Documents" onClick={() => { handleViewDocuments(c._id); setShowAllCasesModal(false); }}>📄</button>
+                        <button className="btn-table-action" title="QR Code" onClick={() => { handleViewQR(c); setShowAllCasesModal(false); }}>🔍</button>
+                        <button className="btn-table-action" title="Edit" onClick={() => { handleEditCase(c); setShowAllCasesModal(false); }}>✏️</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="pagination" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '1.5rem' }}>
+                <button 
+                  className="btn btn-outline btn-sm" 
+                  disabled={casePage === 1}
+                  onClick={() => setCasePage(casePage - 1)}
+                >
+                  Previous
+                </button>
+                <span style={{ alignSelf: 'center', color: 'var(--text-secondary)' }}>
+                  Page {casePage} of {Math.ceil(cases.length / itemsPerPage)}
+                </span>
+                <button 
+                  className="btn btn-outline btn-sm" 
+                  disabled={casePage >= Math.ceil(cases.length / itemsPerPage)}
+                  onClick={() => setCasePage(casePage + 1)}
+                >
+                  Next
+                </button>
+              </div>
+            </>
           )}
         </div>
       </Modal>
@@ -976,7 +1035,7 @@ const LawyerDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {clients.map(client => (
+                    {clients.slice((clientPage - 1) * itemsPerPage, clientPage * itemsPerPage).map(client => (
                       <tr key={client._id}>
                         <td>{client.fullName}</td>
                         <td>{client.email}</td>
@@ -997,6 +1056,25 @@ const LawyerDashboard = () => {
                     ))}
                   </tbody>
                 </table>
+                <div className="pagination" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '1.5rem' }}>
+                  <button 
+                    className="btn btn-outline btn-sm" 
+                    disabled={clientPage === 1}
+                    onClick={() => setClientPage(clientPage - 1)}
+                  >
+                    Previous
+                  </button>
+                  <span style={{ alignSelf: 'center', color: 'var(--text-secondary)' }}>
+                    Page {clientPage} of {Math.ceil(clients.length / itemsPerPage)}
+                  </span>
+                  <button 
+                    className="btn btn-outline btn-sm" 
+                    disabled={clientPage >= Math.ceil(clients.length / itemsPerPage)}
+                    onClick={() => setClientPage(clientPage + 1)}
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -1032,6 +1110,15 @@ const LawyerDashboard = () => {
           )}
         </div>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={confirmConfig.isOpen}
+        title={confirmConfig.title}
+        message={confirmConfig.message}
+        type={confirmConfig.type}
+        onConfirm={confirmConfig.onConfirm}
+        onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };

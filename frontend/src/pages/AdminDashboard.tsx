@@ -67,13 +67,13 @@ const AdminDashboard = () => {
     title: string;
     message: string;
     onConfirm: () => void;
-    variant: 'danger' | 'warning' | 'info';
+    type: 'danger' | 'warning' | 'info';
   }>({
     isOpen: false,
     title: '',
     message: '',
     onConfirm: () => {},
-    variant: 'warning'
+    type: 'warning'
   });
 
   const [fullAuditLogs, setFullAuditLogs] = useState<AuditLog[]>([]);
@@ -180,7 +180,7 @@ const AdminDashboard = () => {
       isOpen: true,
       title: 'Change Account Status',
       message: 'Are you sure you want to change this user\'s account status?',
-      variant: 'warning',
+      type: 'warning',
       onConfirm: async () => {
         try {
           await adminAPI.toggleLock(userId);
@@ -204,7 +204,7 @@ const AdminDashboard = () => {
       isOpen: true,
       title: 'Delete User',
       message: 'WARNING: Are you sure you want to delete this user? This action cannot be undone.',
-      variant: 'danger',
+      type: 'danger',
       onConfirm: async () => {
         try {
           await adminAPI.deleteUser(userId);
@@ -626,7 +626,7 @@ const AdminDashboard = () => {
         message={confirmDialog.message}
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
-        variant={confirmDialog.variant}
+        type={confirmDialog.type}
       />
       
       <ToastContainer />
