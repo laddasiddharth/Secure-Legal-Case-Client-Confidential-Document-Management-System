@@ -614,3 +614,9 @@ a:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--secondary-color);
 }
+
+.modal-scroll-container {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding-right: var(--spacing-sm);
+}

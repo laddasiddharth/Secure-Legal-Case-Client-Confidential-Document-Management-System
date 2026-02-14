@@ -96,12 +96,16 @@ router.post("/register", async (req, res) => {
 
     // Generate RSA key pair for encryption (asynchronous to prevent event loop blocking)
     const { promisify } = require("util");
+    const { encryptMaster } = require("../utils/crypto");
     const generateKeyPair = promisify(crypto.generateKeyPair);
     const { publicKey, privateKey } = await generateKeyPair("rsa", {
       modulusLength: 2048,
       publicKeyEncoding: { type: "spki", format: "pem" },
       privateKeyEncoding: { type: "pkcs8", format: "pem" },
     });
+    
+    // Encrypt private key before storage
+    const encryptedPrivateKey = encryptMaster(privateKey);
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
@@ -116,7 +120,7 @@ router.post("/register", async (req, res) => {
       fullName,
       phoneNumber,
       publicKey,
-      privateKey,
+      privateKey: encryptedPrivateKey,
       accountStatus: "active",
     });
 

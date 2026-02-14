@@ -45,11 +45,19 @@ const documentSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  encryptionKey: {
-    type: String,
-    required: true
-    // In production, this should be stored in a secure key management service
-  },
+  // Hybrid Encryption Keys (Wrapped AES Key for each authorized user)
+  accessKeys: [{
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    key: {
+      type: String, // Encrypted AES key (wrapped with user's public key)
+      required: true
+    }
+  }],
+  encryptionKey: { type: String }, // Legacy/Fallback (optional)
   fileHash: {
     type: String,
     required: true

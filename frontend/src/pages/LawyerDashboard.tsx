@@ -68,6 +68,7 @@ const LawyerDashboard = () => {
   const [caseDocuments, setCaseDocuments] = useState<Document[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
+  const [downloadingDocId, setDownloadingDocId] = useState<string | null>(null);
   
   // Form states
   const [newCase, setNewCase] = useState({
@@ -266,6 +267,7 @@ const LawyerDashboard = () => {
 
   const handleDownloadDocument = async (docId: string, fileName: string) => {
     try {
+      setDownloadingDocId(docId);
       const blob = await documentAPI.download(docId);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -277,6 +279,8 @@ const LawyerDashboard = () => {
       document.body.removeChild(a);
     } catch (err: any) {
       alert(err.message || 'Failed to download document');
+    } finally {
+      setDownloadingDocId(null);
     }
   };
 
@@ -579,7 +583,16 @@ const LawyerDashboard = () => {
       {/* New Case Modal */}
       <Modal
         isOpen={showNewCaseModal}
-        onClose={() => setShowNewCaseModal(false)}
+        onClose={() => {
+          setShowNewCaseModal(false);
+          setNewCase({
+            title: '',
+            description: '',
+            caseType: 'civil',
+            clientId: '',
+            priority: 'medium'
+          });
+        }}
         title="Create New Case"
         size="medium"
       >
@@ -896,7 +909,14 @@ const LawyerDashboard = () => {
                       </td>
                       <td>{formatDate(doc.uploadedAt)}</td>
                       <td>
-                        <button className="btn-table-action" title="Download" onClick={() => handleDownloadDocument(doc._id, doc.fileName)}>📥</button>
+                        <button 
+                          className="btn-table-action" 
+                          title="Download" 
+                          onClick={() => handleDownloadDocument(doc._id, doc.fileName)}
+                          disabled={downloadingDocId === doc._id}
+                        >
+                          {downloadingDocId === doc._id ? '⌛' : '📥'}
+                        </button>
                         {!doc.isSigned && (
                           <button className="btn-table-action" title="Sign Document" onClick={() => handleSignDocument(doc._id)}>✍️</button>
                         )}

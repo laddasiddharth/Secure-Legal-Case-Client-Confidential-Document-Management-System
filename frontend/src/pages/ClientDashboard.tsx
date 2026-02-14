@@ -320,6 +320,7 @@ const ClientDashboard = () => {
           onClose={() => setSelectedCase(null)}
           title={selectedCase ? `${selectedCase.caseNumber} - ${selectedCase.title}` : ''}
           size="large"
+          disableClose={!!downloading}
         >
           <div className="case-details">
             <div className="detail-section">

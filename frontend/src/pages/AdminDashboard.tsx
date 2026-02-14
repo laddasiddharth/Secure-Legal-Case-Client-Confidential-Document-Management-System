@@ -417,7 +417,17 @@ const AdminDashboard = () => {
       {/* Add User Modal */}
       <Modal
         isOpen={showAddUserModal}
-        onClose={() => setShowAddUserModal(false)}
+        onClose={() => {
+          setShowAddUserModal(false);
+          setNewUser({
+            username: '',
+            email: '',
+            password: '',
+            role: 'lawyer',
+            fullName: '',
+            phoneNumber: ''
+          });
+        }}
         title="Add New User"
         size="medium"
       >
@@ -522,7 +532,7 @@ const AdminDashboard = () => {
         title="System Audit Logs (Last 50 Events)"
         size="large"
       >
-        <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
+        <div className="modal-scroll-container">
           {loadingLogs ? (
             <div className="loading-spinner" style={{ margin: '40px auto' }}></div>
           ) : (

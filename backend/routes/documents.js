@@ -13,6 +13,7 @@ const pipe = promisify(pipeline);
 const fs = require('fs');
 const path = require('path');
 const User = require('../models/User');
+const { decryptMaster } = require('../utils/crypto');
 
 // Configure multer for temp file upload
 const upload = multer({
@@ -93,9 +94,28 @@ router.post('/upload', authMiddleware, roleMiddleware('lawyer', 'admin'), upload
     const fileHash = hash.digest('hex');
     const authTag = cipher.getAuthTag().toString('hex');
 
-    // Key Wrapping with Lawyer's Public Key (from User model)
+    // Key Wrapping (Hybrid Encryption)
+    const accessKeys = [];
     const uploadingUser = await User.findById(req.user._id);
-    const wrappedKey = wrapKey(encryptionKey, uploadingUser.publicKey);
+    
+    // 1. Wrap for uploader (Lawyer/Admin)
+    const uploaderWrappedKey = wrapKey(encryptionKey, uploadingUser.publicKey);
+    accessKeys.push({
+      userId: req.user._id,
+      key: uploaderWrappedKey.toString('base64')
+    });
+
+    // 2. Wrap for Client (if exists and different from uploader)
+    if (caseData.clientId && caseData.clientId.toString() !== req.user._id.toString()) {
+      const clientUser = await User.findById(caseData.clientId);
+      if (clientUser) {
+        const clientWrappedKey = wrapKey(encryptionKey, clientUser.publicKey);
+        accessKeys.push({
+          userId: caseData.clientId,
+          key: clientWrappedKey.toString('base64')
+        });
+      }
+    }
 
     const document = new Document({
       caseId,
@@ -108,7 +128,8 @@ router.post('/upload', authMiddleware, roleMiddleware('lawyer', 'admin'), upload
       filePath: finalPath,
       encryptionIV: iv.toString('hex'),
       authTag,
-      encryptionKey: wrappedKey.toString('base64'), 
+      accessKeys, // Store array of keys
+      encryptionKey: uploaderWrappedKey.toString('base64'), // Legacy support
       fileHash,
       isEncrypted: true
     });
@@ -190,11 +211,46 @@ router.get('/:id/download', authMiddleware, async (req, res) => {
 
     if (!isAuthorized) return res.status(403).json({ message: 'Access denied' });
 
-    // Key Unwrapping - Backend uses its copy of privateKey to unwrap
-    const keyUser = await User.findById(document.uploadedBy);
+    // Key Unwrapping - Hybrid Decryption (Backend acts as agent)
+    // Find the encrypted key for the requesting user
+    let userKeyEntry = document.accessKeys?.find(k => k.userId.toString() === req.user._id.toString());
+    
+    // Fallback for Admin or legacy docs: specific logic or use uploader's key if authorized
+    if (!userKeyEntry) {
+      if (req.user.role === 'admin') {
+         // Admins might not be in accessKeys list explicitly, try grabbing uploader's key? 
+         // Realistically, for E2EE, Admins need their own key added during upload OR "break glass" using master key.
+         // Here we assume if legacy/admin, we try to use the legacy encryptionKey if available, OR fail.
+         // For the demo: if admin, use the uploader's key and impersonate via server master key (decrypt uploader private key).
+         // BUT wait, server decrypts private key using Master Key. So server CAN impersonate uploader.
+         const uploaderId = document.uploadedBy;
+         // We'll use the legacy/uploader path below if userKeyEntry is missing but authorized
+      }
+    }
+
+    // Determine whose private key to use
+    let targetUserId = req.user._id;
+    let targetWrappedKey = userKeyEntry ? userKeyEntry.key : null;
+
+    if (!targetWrappedKey) {
+       // Legacy Fallback or Admin Override
+       if (document.encryptionKey) {
+         targetWrappedKey = document.encryptionKey;
+         targetUserId = document.uploadedBy; // Use uploader's key
+       } else {
+         return res.status(403).json({ message: 'No access key found for this user' });
+       }
+    }
+
+    // Get the USER whose key we are using (could be self, or uploader if admin/legacy)
+    const keyUser = await User.findById(targetUserId);
+    
+    // Decrypt the Private Key (Server-Side Managed)
+    const decryptedPrivateKey = decryptMaster(keyUser.privateKey);
+
     const encryptionKey = unwrapKey(
-      Buffer.from(document.encryptionKey, 'base64'),
-      keyUser.privateKey
+      Buffer.from(targetWrappedKey, 'base64'),
+      decryptedPrivateKey
     );
 
     const decipher = crypto.createDecipheriv(
@@ -284,11 +340,15 @@ router.patch('/:id/sign', authMiddleware, roleMiddleware('lawyer'), async (req, 
 
     // ACTUAL RSA-SHA256 DIGITAL SIGNATURE
     const signer = await User.findById(req.user._id);
+    
+    // Decrypt Signer's Private Key
+    const decryptedPrivateKey = decryptMaster(signer.privateKey);
+    
     const signature = crypto.sign(
       "sha256",
       Buffer.from(document.fileHash, "hex"),
       {
-        key: signer.privateKey,
+        key: decryptedPrivateKey,
         padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
       }
     );

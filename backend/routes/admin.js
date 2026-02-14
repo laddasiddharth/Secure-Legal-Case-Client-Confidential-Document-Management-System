@@ -76,6 +76,15 @@ router.post('/users', async (req, res) => {
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
+    if (!['lawyer', 'client', 'admin'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    // Extra strict check: Only admins can create admins (already covered by middleware but good for defense-in-depth)
+    if (role === 'admin' && req.user.role !== 'admin') { 
+      return res.status(403).json({ message: 'Unauthorized to create admin account' });
+    }
+
     // Check if user exists
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
@@ -88,6 +97,10 @@ router.post('/users', async (req, res) => {
       publicKeyEncoding: { type: 'spki', format: 'pem' },
       privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
     });
+    
+    // Encrypt private key for storage
+    const { encryptMaster } = require("../utils/crypto");
+    const encryptedPrivateKey = encryptMaster(privateKey);
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
@@ -102,7 +115,7 @@ router.post('/users', async (req, res) => {
       fullName,
       phoneNumber,
       publicKey,
-      privateKey,
+      privateKey: encryptedPrivateKey,
       accountStatus: 'active'
     });
 

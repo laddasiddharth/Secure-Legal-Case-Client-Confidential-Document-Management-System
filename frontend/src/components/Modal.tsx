@@ -7,13 +7,14 @@ interface ModalProps {
   title: string;
   children: ReactNode;
   size?: 'small' | 'medium' | 'large';
+  disableClose?: boolean;
 }
 
-const Modal = ({ isOpen, onClose, title, children, size = 'medium' }: ModalProps) => {
+const Modal = ({ isOpen, onClose, title, children, size = 'medium', disableClose = false }: ModalProps) => {
   // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape' && isOpen && !disableClose) {
         onClose();
       }
     };
@@ -38,16 +39,18 @@ const Modal = ({ isOpen, onClose, title, children, size = 'medium' }: ModalProps
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={!disableClose ? onClose : undefined}>
       <div 
         className={`modal-content modal-${size}`} 
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
           <h2 className="text-gradient">{title}</h2>
-          <button className="modal-close" onClick={onClose}>
-            ✕
-          </button>
+          {!disableClose && (
+            <button className="modal-close" onClick={onClose}>
+              ✕
+            </button>
+          )}
         </div>
         <div className="modal-body">
           {children}
