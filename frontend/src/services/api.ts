@@ -195,19 +195,39 @@ export const documentAPI = {
   // Download document
   download: async (id: string) => {
     const token = getAuthToken();
-    const response = await fetch(`${API_BASE_URL}/api/documents/${id}/download`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: 'include',
-    });
+    const { controller, timeoutId } = createTimeoutController();
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Download failed");
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/documents/${id}/download`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+        throw new Error("Session expired. Please login again.");
+      }
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Download failed");
+      }
+
+      return response.blob();
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === "AbortError") {
+        throw new Error("Request timeout. Please check your connection.");
+      }
+      throw error;
     }
-
-    return response.blob();
   },
 
   // Delete document
